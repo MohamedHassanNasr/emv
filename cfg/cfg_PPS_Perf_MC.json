@@ -1,0 +1,20 @@
+{
+  "name" : "PPS_Perf_MC",
+  "parent" : "PPS_MChip1",
+  "kernel": [
+    {
+      "kernelId": 2,
+      "override": [
+        { "tag": "9F35", "value": "21" },
+	{ "tag" : "9F40", "value" : "6000F00001"},
+        { "tag" : "DF8123", "value" : "000000900000"},
+	{ "tag" : "DF8124", "value" : "000000900000"},
+        { "tag" : "DF8125", "value" : "000000900000"},
+        { "tag" : "DF8126", "value" : "000000900000"},
+        { "tag" : "DF8120", "value" : "0400800000"},
+        { "tag" : "DF8121", "value" : "DC50000000"},
+        { "tag" : "9F35", "value" : "26"}
+      ]
+    }
+  ]
+}

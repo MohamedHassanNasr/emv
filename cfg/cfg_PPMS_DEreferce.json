@@ -1,0 +1,12 @@
+{
+  "name" : "PPMS_DEreferce",
+  "parent" : "PPS_MStripe1",
+  "kernel": [
+    {
+      "kernelId": 2,
+      "config": [
+	{ "tag" : "DF8110", "value" : "00" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+[submodule "json"]
+	path = json
+	url = git@github.com:nlohmann/json.git
+	branch = master

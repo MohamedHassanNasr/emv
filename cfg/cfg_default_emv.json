@@ -1,0 +1,851 @@
+{
+  "terminal": [
+    {
+      "tag": "9F1E",
+      "value": "3234"
+    },
+    {
+      "tag": "9F1A",
+      "value": "0840"
+    },
+    {
+      "tag": "9F39",
+      "value": "07"
+    },
+    {
+      "tag": "DF8110",
+      "value": "01"
+    },
+    {
+      "tag": "9F53",
+      "value": "32"
+    },
+    {
+      "tag": "9F1B",
+      "value": "200000"
+    },
+    {
+      "tag": "5F2A",
+      "value": "0840"
+    },
+    {
+      "tag": "5F36",
+      "value": "02"
+    },
+    {
+      "tag": "9F01",
+      "value": "000000000000"
+    },
+    {
+      "tag": "9F16",
+      "value": "000000000000000000000000000000"
+    },
+    {
+      "tag": "9F1C",
+      "value": "3234"
+    },
+    {
+      "tag": "9F4E",
+      "value": "534F4654504F53"
+    },
+    {
+      "tag": "DF8112",
+      "value": ""
+    },
+    {
+      "tag": "FF8102",
+      "value": ""
+    },
+    {
+      "tag": "FF8103",
+      "value": ""
+    },
+    {
+      "tag": "9F45",
+      "value": "0000"
+    },
+    {
+      "tag": "9F4C",
+      "value": "0000"
+    },
+    {
+      "tag": "9F1D",
+      "value": "00"
+    },
+    {
+      "tag": "9F7A",
+      "value": "00"
+    },
+    {
+      "tag": "9F15",
+      "value": "0000"
+    },
+    {
+      "tag": "9F5C",
+      "value": "0000000000000000"
+    }
+  ],
+  "kernel": [
+    {
+      "terminalEntryCapability": 8,
+      "fddaForOnlineSupported": true,
+      "displayAvailableSpendingAmount": true,
+      "aucManualCheckSupported": true,
+      "aucCashbackCheckSupported": true,
+      "atmOfflineCheck": true,
+      "exceptionFileEnabled": true,
+      "kernelId": 3,
+      "config": [
+        {
+          "tag": "9F33",
+          "value": "A048C8"
+        },
+        {
+          "tag": "9F40",
+          "value": "6000C03000"
+        },
+        {
+          "tag": "9F09",
+          "value": "0002"
+        },
+        {
+          "tag": "9F1A",
+          "value": "0840"
+        },
+        {
+          "tag": "9F35",
+          "value": "21"
+        },
+        {
+          "tag": "9C",
+          "value": "00"
+        }
+      ],
+      "application": [
+        {
+          "aid": "A0000000980840",
+          "config": [],
+          "transaction": [
+            {
+              "transactionType": 0,
+              "aid": "A0000000980840",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 8000,
+              "terminalFloorLimit": 200000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24804000"
+                }
+              ]
+            },
+            {
+              "transactionType": 9,
+              "aid": "A0000000980840",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 2000,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24804000"
+                }
+              ]
+            },
+            {
+              "transactionType": 32,
+              "aid": "A0000000980840",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 2000,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24804000"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "aid": "A0000000031010",
+          "config": [],
+          "transaction": [
+            {
+              "transactionType": 0,
+              "aid": "A0000000031010",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 8000,
+              "terminalFloorLimit": 200000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24804000"
+                }
+              ]
+            },
+            {
+              "transactionType": 9,
+              "aid": "A0000000031010",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 2000,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24804000"
+                }
+              ]
+            },
+            {
+              "transactionType": 32,
+              "aid": "A0000000031010",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 2000,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24804000"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "aid": "A000000003",
+          "config": [],
+          "transaction": [
+            {
+              "transactionType": 0,
+              "aid": "A000000003",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 8000,
+              "terminalFloorLimit": 200000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24804000"
+                }
+              ]
+            },
+            {
+              "transactionType": 9,
+              "aid": "A000000003",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 2000,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24804000"
+                }
+              ]
+            },
+            {
+              "transactionType": 32,
+              "aid": "A000000003",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 2000,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24804000"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernelId": 2,
+      "idsSupported" : true,
+      "emvModeOnly" : true,
+      "magstripeModeOnly" : false,
+      "balanceReadingDisplaySupported" : true,
+      "tornTransactionRecoverySupported" : true,
+      "onDeviceVerifySupported" : true,
+      "relayResistenceSupported" : true, 
+      "config": [
+        {
+          "tag": "9F35",
+          "value": "21"
+        },
+        {
+          "tag": "DF811E",
+          "value": "00"
+        },
+        {
+          "tag": "DF812C",
+          "value": "00"
+        },
+        {
+          "tag": "DF8118",
+          "value": "40"
+        },
+        {
+          "tag": "DF8119",
+          "value": "08"
+        },
+        {
+          "tag": "DF8120",
+          "value": "FC509C8800"
+        },
+        {
+          "tag": "DF8121",
+          "value": "0000000000"
+        },
+        {
+          "tag": "DF8122",
+          "value": "FC509C8800"
+        },
+        {
+          "tag": "DF810D",
+          "value": "02"
+        },
+        {
+          "tag": "9F5C",
+          "value": "0000000000000001"
+        },
+        {
+          "tag": "DF60",
+          "value": "0000000000000000"
+        },
+        {
+          "tag": "DF8109",
+          "value": "0000000000000000"
+        },
+        {
+          "tag": "DF63",
+          "value": "00000000"
+        },
+        {
+          "tag": "DF62",
+          "value": "A8"
+        },
+        {
+          "tag": "DF8108",
+          "value": "80"
+        },
+        {
+          "tag": "DF810A",
+          "value": "E6"
+        },
+        {
+          "tag": "9F33",
+          "value": ""
+        },
+        {
+          "tag": "DF8117",
+          "value": "A0"
+        },
+        {
+          "tag": "DF811F",
+          "value": "C8"
+        },
+        {
+          "tag": "DF811B",
+          "value": "80"
+        },
+        {
+          "tag": "9F40",
+          "value": "6000C03000"
+        },
+        {
+          "tag": "9F09",
+          "value": "0002"
+        },
+        {
+          "tag": "DF811A",
+          "value": "9F6A04"
+        },
+        {
+          "tag": "DF8130",
+          "value": "0D"
+        },
+        {
+          "tag": "DF810C",
+          "value": "02"
+        },
+        {
+          "tag": "9F6D",
+          "value": "0001"
+        },
+        {
+          "tag": "DF811C",
+          "value": "012C"
+        },
+        {
+          "tag": "DF811D",
+          "value": "00"
+        },
+        {
+          "tag": "DF812D",
+          "value": "000013"
+        },
+        {
+          "tag": "DF8123",
+          "value": "000000000000"
+        },
+        {
+          "tag": "DF8124",
+          "value": "000000010000"
+        },
+        {
+          "tag": "DF8125",
+          "value": "000000100000"
+        },
+        {
+          "tag": "DF8126",
+          "value": "000000008000"
+        },
+        {
+          "tag": "9F1A",
+          "value": "0840"
+        },
+        {
+          "tag": "DF8127",
+          "value": "01F4"
+        },
+        {
+          "tag": "9C",
+          "value": "00"
+        },
+        {
+          "tag": "DF8133",
+          "value": "0032"
+        },
+        {
+          "tag": "DF8132",
+          "value": "0014"
+        },
+        {
+          "tag": "DF8134",
+          "value": "0012"
+        },
+        {
+          "tag": "DF8135",
+          "value": "0018"
+        },
+        {
+          "tag": "DF8136",
+          "value": "012C"
+        },
+        {
+          "tag": "DF8137",
+          "value": "012C"
+        },
+        {
+          "tag": "9F1D",
+          "value": "0000000000000000"
+        },
+        {
+          "tag": "DF8131",
+          "value": "00080000080020000004000004002000000100000100200000020000020020000000000000000700"
+        }
+      ],
+      "application": [
+        {
+          "aid": "A0000000041010",
+          "config": [],
+          "transaction": [
+            {
+              "transactionType": 0,
+              "aid": "A0000000041010",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": true,
+              "config": []
+            },
+            {
+              "transactionType": 9,
+              "aid": "A0000000041010",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": true,
+              "config": []
+            },
+            {
+              "transactionType": 32,
+              "aid": "A0000000041010",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": true,
+              "config": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "exceptionFile": [],
+  "publicKey": [
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "A6DA428387A502D7DDFB7A74D3F412BE762627197B25435B7A81716A700157DDD06F7CC99D6CA28C2470527E2C03616B9C59217357C2674F583B3BA5C7DCF2838692D023E3562420B4615C439CA97C44DC9A249CFCE7B3BFB22F68228C3AF13329AA4A613CF8DD853502373D62E49AB256D2BC17120E54AEDCED6D96A4287ACC5C04677D4A5A320DB8BEE2F775E5FEC5",
+      "exponent": "03",
+      "expiryDate": "1217",
+      "index": "04",
+      "checksum": "381A035DA58B482EE2AF75F4C3F2CA469BA4AA6C",
+      "rId": "A000000004"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "B8048ABC30C90D976336543E3FD7091C8FE4800DF820ED55E7E94813ED00555B573FECA3D84AF6131A651D66CFF4284FB13B635EDD0EE40176D8BF04B7FD1C7BACF9AC7327DFAA8AA72D10DB3B8E70B2DDD811CB4196525EA386ACC33C0D9D4575916469C4E4F53E8E1C912CC618CB22DDE7C3568E90022E6BBA770202E4522A2DD623D180E215BD1D1507FE3DC90CA310D27B3EFCCD8F83DE3052CAD1E48938C68D095AAC91B5F37E28BB49EC7ED597",
+      "exponent": "03",
+      "expiryDate": "1221",
+      "index": "05",
+      "checksum": "EBFA0D5D06D8CE702DA3EAE890701D45E274C845",
+      "rId": "A000000004"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "CB26FC830B43785B2BCE37C81ED334622F9622F4C89AAE641046B2353433883F307FB7C974162DA72F7A4EC75D9D657336865B8D3023D3D645667625C9A07A6B7A137CF0C64198AE38FC238006FB2603F41F4F3BB9DA1347270F2F5D8C606E420958C5F7D50A71DE30142F70DE468889B5E3A08695B938A50FC980393A9CBCE44AD2D64F630BB33AD3F5F5FD495D31F37818C1D94071342E07F1BEC2194F6035BA5DED3936500EB82DFDA6E8AFB655B1EF3D0D7EBF86B66DD9F29F6B1D324FE8B26CE38AB2013DD13F611E7A594D675C4432350EA244CC34F3873CBA06592987A1D7E852ADC22EF5A2EE28132031E48F74037E3B34AB747F",
+      "exponent": "03",
+      "expiryDate": "1221",
+      "index": "06",
+      "checksum": "F910A1504D5FFB793D94F3B500765E1ABCAD72D9",
+      "rId": "A000000004"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "CBCBDB21CCE3A3369EC6FFAB4C26D8F8660FBC75DBA42115F9EDB4E3D654AAF2434CCEB57837449D0A0A59683D3A199F2FC36149951EBAA192D1336A043016BE72F443B1A4B636CF7A464F59E480B79C0A8A68684822278B0922C4800931DEC8C73F58B2DE8B2EBA4203AD621914738AB49EF5653A6873AC4216E8127D275DB9E4A9A848CDF85B5BD4719F19A33EF953",
+      "exponent": "03",
+      "expiryDate": "1220",
+      "index": "AD",
+      "rId": "A000000004"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "A191CB87473F29349B5D60A88B3EAEE0973AA6F1A082F358D849FDDFF9C091F899EDA9792CAF09EF28F5D22404B88A2293EEBBC1949C43BEA4D60CFD879A1539544E09E0F09F60F065B2BF2A13ECC705F3D468B9D33AE77AD9D3F19CA40F23DCF5EB7C04DC8F69EBA565B1EBCB4686CD274785530FF6F6E9EE43AA43FDB02CE00DAEC15C7B8FD6A9B394BABA419D3F6DC85E16569BE8E76989688EFEA2DF22FF7D35C043338DEAA982A02B866DE5328519EBBCD6F03CDD686673847F84DB651AB86C28CF1462562C577B853564A290C8556D818531268D25CC98A4CC6A0BDFFFDA2DCCA3A94C998559E307FDDF915006D9A987B07DDAEB3B",
+      "exponent": "03",
+      "index": "EF",
+      "checksum": "21766EBB0EE122AFB65D7845B73DB46BAB65427A",
+      "rId": "A000000004"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "A0DCF4BDE19C3546B4B6F0414D174DDE294AABBB828C5A834D73AAE27C99B0B053A90278007239B6459FF0BBCD7B4B9C6C50AC02CE91368DA1BD21AAEADBC65347337D89B68F5C99A09D05BE02DD1F8C5BA20E2F13FB2A27C41D3F85CAD5CF6668E75851EC66EDBF98851FD4E42C44C1D59F5984703B27D5B9F21B8FA0D93279FBBF69E090642909C9EA27F898959541AA6757F5F624104F6E1D3A9532F2A6E51515AEAD1B43B3D7835088A2FAFA7BE7",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "F1",
+      "checksum": "D8E68DA167AB5A85D8C3D55ECB9B0517A1A5B4BB",
+      "rId": "A000000004"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "98F0C770F23864C2E766DF02D1E833DFF4FFE92D696E1642F0A88C5694C6479D16DB1537BFE29E4FDC6E6E8AFD1B0EB7EA0124723C333179BF19E93F10658B2F776E829E87DAEDA9C94A8B3382199A350C077977C97AFF08FD11310AC950A72C3CA5002EF513FCCC286E646E3C5387535D509514B3B326E1234F9CB48C36DDD44B416D23654034A66F403BA511C5EFA3",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "F3",
+      "checksum": "A69AC7603DAF566E972DEDC2CB433E07E8B01A9A",
+      "rId": "A000000004"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "A6E6FB72179506F860CCCA8C27F99CECD94C7D4F3191D303BBEE37481C7AA15F233BA755E9E4376345A9A67E7994BDC1C680BB3522D8C93EB0CCC91AD31AD450DA30D337662D19AC03E2B4EF5F6EC18282D491E19767D7B24542DFDEFF6F62185503532069BBB369E3BB9FB19AC6F1C30B97D249EEE764E0BAC97F25C873D973953E5153A42064BBFABFD06A4BB486860BF6637406C9FC36813A4A75F75C31CCA9F69F8DE59ADECEF6BDE7E07800FCBE035D3176AF8473E23E9AA3DFEE221196D1148302677C720CFE2544A03DB553E7F1B8427BA1CC72B0F29B12DFEF4C081D076D353E71880AADFF386352AF0AB7B28ED49E1E672D11F9",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "F5",
+      "checksum": "C2239804C8098170BE52D6D5D4159E81CE8466BF",
+      "rId": "A000000004"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "9C6BE5ADB10B4BE3DCE2099B4B210672B89656EBA091204F613ECC623BEDC9C6D77B660E8BAEEA7F7CE30F1B153879A4E36459343D1FE47ACDBD41FCD710030C2BA1D9461597982C6E1BDD08554B726F5EFF7913CE59E79E357295C321E26D0B8BE270A9442345C753E2AA2ACFC9D30850602FE6CAC00C6DDF6B8D9D9B4879B2826B042A07F0E5AE526A3D3C4D22C72B9EAA52EED8893866F866387AC05A1399",
+      "exponent": "03",
+      "index": "FA",
+      "checksum": "0ABCADAD2C7558CA9C7081AE55DDDC714F8D45F8",
+      "rId": "A000000004"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "C696034213D7D8546984579D1D0F0EA519CFF8DEFFC429354CF3A871A6F7183F1228DA5C7470C055387100CB935A712C4E2864DF5D64BA93FE7E63E71F25B1E5F5298575EBE1C63AA617706917911DC2A75AC28B251C7EF40F2365912490B939BCA2124A30A28F54402C34AECA331AB67E1E79B285DD5771B5D9FF79EA630B75",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "01",
+      "checksum": "D34A6A776011C7E7CE3AEC5F03AD2F8CFC5503CC",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "B3E5E667506C47CAAFB12A2633819350846697DD65A796E5CE77C57C626A66F70BB630911612AD2832909B8062291BECA46CD33B66A6F9C9D48CED8B4FC8561C8A1D8FB15862C9EB60178DEA2BE1F82236FFCFF4F3843C272179DCDD384D541053DA6A6A0D3CE48FDC2DC4E3E0EEE15F",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "03",
+      "checksum": "FE70AB3B4D5A1B9924228ADF8027C758483A8B7E",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "D0135CE8A4436C7F9D5CC66547E30EA402F98105B71722E24BC08DCC80AB7E71EC23B8CE6A1DC6AC2A8CF55543D74A8AE7B388F9B174B7F0D756C22CBB5974F9016A56B601CCA64C71F04B78E86C501B193A5556D5389ECE4DEA258AB97F52A3",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "05",
+      "checksum": "86DF041E7995023552A79E2623E49180C0CD957A",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "F934FC032BE59B609A9A649E04446F1B365D1D23A1E6574E490170527EDF32F398326159B39B63D07E95E6276D7FCBB786925182BC0667FBD8F6566B361CA41A38DDF227091B87FA4F47BAC780AC47E15A6A0FB65393EB3473E8D193A07EB579",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "06",
+      "checksum": "A0DF5DAA385AE3E0E21BFD34D9D8A30506B19B12",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "A89F25A56FA6DA258C8CA8B40427D927B4A1EB4D7EA326BBB12F97DED70AE5E4480FC9C5E8A972177110A1CC318D06D2F8F5C4844AC5FA79A4DC470BB11ED635699C17081B90F1B984F12E92C1C529276D8AF8EC7F28492097D8CD5BECEA16FE4088F6CFAB4A1B42328A1B996F9278B0B7E3311CA5EF856C2F888474B83612A82E4E00D0CD4069A6783140433D50725F",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "07",
+      "checksum": "B4BC56CC4E88324932CBC643D6898F6FE593B172",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 16,
+      "modulus": "D9FD6ED75D51D0E30664BD157023EAA1FFA871E4DA65672B863D255E81E137A51DE4F72BCC9E44ACE12127F87E263D3AF9DD9CF35CA4A7B01E907000BA85D24954C2FCA3074825DDD4C0C8F186CB020F683E02F2DEAD3969133F06F7845166ACEB57CA0FC2603445469811D293BFEFBAFAB57631B3DD91E796BF850A25012F1AE38F05AA5C4D6D03B1DC2E568612785938BBC9B3CD3A910C1DA55A5A9218ACE0F7A21287752682F15832A678D6E1ED0B",
+      "exponent": "03",
+      "expiryDate": "1224",
+      "index": "08",
+      "checksum": "20D213126955DE205ADC2FD2822BD22DE21CF9A8",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "9D912248DE0A4E39C1A7DDE3F6D2588992C1A4095AFBD1824D1BA74847F2BC4926D2EFD904B4B54954CD189A54C5D1179654F8F9B0D2AB5F0357EB642FEDA95D3912C6576945FAB897E7062CAA44A4AA06B8FE6E3DBA18AF6AE3738E30429EE9BE03427C9D64F695FA8CAB4BFE376853EA34AD1D76BFCAD15908C077FFE6DC5521ECEF5D278A96E26F57359FFAEDA19434B937F1AD999DC5C41EB11935B44C18100E857F431A4A5A6BB65114F174C2D7B59FDF237D6BB1DD0916E644D709DED56481477C75D95CDD68254615F7740EC07F330AC5D67BCD75BF23D28A140826C026DBDE971A37CD3EF9B8DF644AC385010501EFC6509D7A41",
+      "exponent": "03",
+      "expiryDate": "1225",
+      "index": "09",
+      "checksum": "1FF80A40173F52D7D27E0F26A146A1C8CCB29046",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "9F2701C0909CCBD8C3ED3E071C69F776160022FF3299807ED7A035ED5752770E232D56CC3BE159BD8F0CA8B59435688922F406F55C75639457BBABEFE9A86B2269EF223E34B91AA6DF2CCAD03B4AD4B443D61575CA960845E6C69040101E231D9EF811AD99B0715065A0E661449C41B4B023B7716D1E4AFF1C90704E55AE1225",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "10",
+      "checksum": "833B1947778036B6D759FCE3F618DDEB2749372C",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "998D2AD946A60FC597D93807DB54B2B0A550871E43F1779F073AF08D9B04ABD17C8A7DAA3E66EE443F30F92648FC53DA57A78364B062FEDB50F7235B937E16E5F6D9E6BA8F106FB325ECA25125111CE04B43098CDEA8A41426FC6D94F8A47619EDB12789581808692CFBA1F38E8008CC5E02066A1889D52F77B9A121E6597F39",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "20",
+      "checksum": "7AC3D80EF01E9A998F0A77181E64B36747DC51EB",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "D11197590057B84196C2F4D11A8F3C05408F422A35D702F90106EA5B019BB28AE607AA9CDEBCD0D81A38D48C7EBB0062D287369EC0C42124246AC30D80CD602AB7238D51084DED4698162C59D25EAC1E66255B4DB2352526EF0982C3B8AD3D1CCE85B01DB5788E75E09F44BE7361366DEF9D1E1317B05E5D0FF5290F88A0DB47",
+      "exponent": "010001",
+      "expiryDate": "1230",
+      "index": "50",
+      "checksum": "B769775668CACB5D22A647D1D993141EDAB7237B",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "DB5FA29D1FDA8C1634B04DCCFF148ABEE63C772035C79851D3512107586E02A917F7C7E885E7C4A7D529710A145334CE67DC412CB1597B77AA2543B98D19CF2CB80C522BDBEA0F1B113FA2C86216C8C610A2D58F29CF3355CEB1BD3EF410D1EDD1F7AE0F16897979DE28C6EF293E0A19282BD1D793F1331523FC71A228800468C01A3653D14C6B4851A5C029478E757F",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "51",
+      "checksum": "969299D792D3CC08AD28F2D544CEE3309DADF1B9",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "B831414E0B4613922BD35B4B36802BC1E1E81C95A27C958F5382003DF646154CA92FC1CE02C3BE047A45E9B02A9089B4B90278237C965192A0FCC86BB49BC82AE6FDC2DE709006B86C7676EFDF597626FAD633A4F7DC48C445D37EB55FCB3B1ABB95BAAA826D5390E15FD14ED403FA2D0CB841C650609524EC555E3BC56CA957",
+      "exponent": "010001",
+      "expiryDate": "1230",
+      "index": "52",
+      "checksum": "73A7CA6BA7DB3C37B78E86952BC4EC7754925D54",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "BCD83721BE52CCCC4B6457321F22A7DC769F54EB8025913BE804D9EABBFA19B3D7C5D3CA658D768CAF57067EEC83C7E6E9F81D0586703ED9DDDADD20675D63424980B10EB364E81EB37DB40ED100344C928886FF4CCC37203EE6106D5B59D1AC102E2CD2D7AC17F4D96C398E5FD993ECB4FFDF79B17547FF9FA2AA8EEFD6CBDA124CBB17A0F8528146387135E226B005A474B9062FF264D2FF8EFA36814AA2950065B1B04C0A1AE9B2F69D4A4AA979D6CE95FEE9485ED0A03AEE9BD953E81CFD1EF6E814DFD3C2CE37AEFA38C1F9877371E91D6A5EB59FDEDF75D3325FA3CA66CDFBA0E57146CC789818FF06BE5FCC50ABD362AE4B80996D",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "53",
+      "checksum": "A84A53964513A5D9363B4BA13AF5D43B83A83CE7",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "99552C4A1ECD68A0260157FC4151B5992837445D3FC57365CA5692C87BE358CDCDF2C92FB6837522842A48EB11CDFFE2FD91770C7221E4AF6207C2DE4004C7DEE1B6276DC62D52A87D2CD01FBF2DC4065DB52824D2A2167A06D19E6A0F781071CDB2DD314CB94441D8DC0E936317B77BF06F5177F6C5ABA3A3BC6AA30209C97260B7A1AD3A192C9B8CD1D153570AFCC87C3CD681D13E997FE33B3963A0A1C79772ACF991033E1B8397AD0341500E48A24770BC4CBE19D2CCF419504FDBF0389BC2F2FDCD4D44E61F",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "58",
+      "checksum": "E6D302EBE7DC6F267E4D00F7D488F0AB6235F105",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "E5E195705CE61A0672B8367E7A51713927A04289EA308328FAD28071ECEAE889B3C4F29AC3BDE46772B00D42FD05F27228820F2693990F81B0F6928E240D957EC4484354CD5E5CA9092B444741A0394D3476651232474A9B87A961DA8DD96D90F036E9B3C52FB09766BDA4D6BC3BDADBC89122B74068F8FA04026C5FA8EF398BC3AB3992A87F6A785CC779BA99F170956623D67A18EB8324263D626BE85BFF77B8B981C0A3F7849C4F3D8E20542955D19128198547B47AE34DF67F28BE433F33",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "89",
+      "checksum": "7170850B97F83952045CF9CA8B7612DFEB69E9EF",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "C26B3CB3833E42D8270DC10C8999B2DA18106838650DA0DBF154EFD51100AD144741B2A87D6881F8630E3348DEA3F78038E9B21A697EB2A6716D32CBF26086F1",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "90",
+      "checksum": "B3AE2BC3CAFC05EEEFAA46A2A47ED51DE679F823",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "996AF56F569187D09293C14810450ED8EE3357397B18A2458EFAA92DA3B6DF6514EC060195318FD43BE9B8F0CC669E3F844057CBDDF8BDA191BB64473BC8DC9A730DB8F6B4EDE3924186FFD9B8C7735789C23A36BA0B8AF65372EB57EA5D89E7D14E9C7B6B557460F10885DA16AC923F15AF3758F0F03EBD3C5C2C949CBA306DB44E6A2C076C5F67E281D7EF56785DC4D75945E491F01918800A9E2DC66F60080566CE0DAF8D17EAD46AD8E30A247C9F",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "92",
+      "checksum": "429C954A3859CEF91295F663C963E582ED6EB253",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "ACD2B12302EE644F3F835ABD1FC7A6F62CCE48FFEC622AA8EF062BEF6FB8BA8BC68BBF6AB5870EED579BC3973E121303D34841A796D6DCBC41DBF9E52C4609795C0CCF7EE86FA1D5CB041071ED2C51D2202F63F1156C58A92D38BC60BDF424E1776E2BC9648078A03B36FB554375FC53D57C73F5160EA59F3AFC5398EC7B67758D65C9BFF7828B6B82D4BE124A416AB7301914311EA462C19F771F31B3B57336000DFF732D3B83DE07052D730354D297BEC72871DCCF0E193F171ABA27EE464C6A97690943D59BDABB2A27EB71CEEBDAFA1176046478FD62FEC452D5CA393296530AA3F41927ADFE434A2DF2AE3054F8840657A26E0FC617",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "94",
+      "checksum": "C4A3C43CCF87327D136B804160E47D43B60E6E0F",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "BE9E1FA5E9A803852999C4AB432DB28600DCD9DAB76DFAAA47355A0FE37B1508AC6BF38860D3C6C2E5B12A3CAAF2A7005A7241EBAA7771112C74CF9A0634652FBCA0E5980C54A64761EA101A114E0F0B5572ADD57D010B7C9C887E104CA4EE1272DA66D997B9A90B5A6D624AB6C57E73C8F919000EB5F684898EF8C3DBEFB330C62660BED88EA78E909AFF05F6DA627B",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "95",
+      "checksum": "EE1511CEC71020A9B90443B37B1D5F6E703030F6",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "B74586D19A207BE6627C5B0AAFBC44A2ECF5A2942D3A26CE19C4FFAEEE920521868922E893E7838225A3947A2614796FB2C0628CE8C11E3825A56D3B1BBAEF783A5C6A81F36F8625395126FA983C5216D3166D48ACDE8A431212FF763A7F79D9EDB7FED76B485DE45BEB829A3D4730848A366D3324C3027032FF8D16A1E44D8D",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "96",
+      "checksum": "7616E9AC8BE014AF88CA11A8FB17967B7394030E",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "AF0754EAED977043AB6F41D6312AB1E22A6809175BEB28E70D5F99B2DF18CAE73519341BBBD327D0B8BE9D4D0E15F07D36EA3E3A05C892F5B19A3E9D3413B0D97E7AD10A5F5DE8E38860C0AD004B1E06F4040C295ACB457A788551B6127C0B29",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "97",
+      "checksum": "8001CA76C1203955E2C62841CD6F201087E564BF",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "CA026E52A695E72BD30AF928196EEDC9FAF4A619F2492E3FB31169789C276FFBB7D43116647BA9E0D106A3542E3965292CF77823DD34CA8EEC7DE367E08070895077C7EFAD939924CB187067DBF92CB1E785917BD38BACE0C194CA12DF0CE5B7A50275AC61BE7C3B436887CA98C9FD39",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "98",
+      "checksum": "E7AC9AA8EED1B5FF1BD532CF1489A3E5557572C1",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "AB79FCC9520896967E776E64444E5DCDD6E13611874F3985722520425295EEA4BD0C2781DE7F31CD3D041F565F747306EED62954B17EDABA3A6C5B85A1DE1BEB9A34141AF38FCF8279C9DEA0D5A6710D08DB4124F041945587E20359BAB47B7575AD94262D4B25F264AF33DEDCF28E09615E937DE32EDC03C54445FE7E382777",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "99",
+      "checksum": "4ABFFD6B1C51212D05552E431C5B17007D2F5E6D",
+      "rId": "A000000003"
+    },
+    {
+      "hashAlgorithmIndicator": 1,
+      "publicKeyAlgorithmIndicator": 1,
+      "modulus": "98F0C770F23864C2E766DF02D1E833DFF4FFE92D696E1642F0A88C5694C6479D16DB1537BFE29E4FDC6E6E8AFD1B0EB7EA0124723C333179BF19E93F10658B2F776E829E87DAEDA9C94A8B3382199A350C077977C97AFF08FD11310AC950A72C3CA5002EF513FCCC286E646E3C5387535D509514B3B326E1234F9CB48C36DDD44B416D23654034A66F403BA511C5EFA3",
+      "exponent": "03",
+      "expiryDate": "1230",
+      "index": "F3",
+      "checksum": "128EB33128E63E38C9A83A2B1A9349E178F82196",
+      "rId": "A000000003"
+    }
+  ],
+  "revokedPublicKey": [],
+  "dekDet": []
+}

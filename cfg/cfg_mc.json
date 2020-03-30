@@ -1,0 +1,229 @@
+{
+  "name" : "PPS_MChip1",
+  "kernel": [
+    {
+      "kernelId": 2,
+      "idsSupported" : true,
+      "emvModeOnly" : true,
+      "magstripeModeOnly" : false,
+      "balanceReadingDisplaySupported" : true,
+      "tornTransactionRecoverySupported" : true,
+      "onDeviceVerifySupported" : true,
+      "relayResistenceSupported" : true, 
+      "config": [
+        { "tag": "9F35", "value": "21" },
+	{ "tag" : "9F01", "value" :  "" },
+	{ "tag" : "9F40", "value" :  "0000000000" },
+	{ "tag" : "9F09", "value" : "0002" },
+	{ "tag" : "DF8117", "value" :  "00" },
+	{ "tag" : "DF8118", "value" : "60" },
+	{ "tag" : "DF8119", "value" :  "08" },
+	{ "tag" : "DF811A", "value" :  "9F6A04" },
+	{ "tag" : "DF8108", "value" : "" },
+	{ "tag" : "DF60", "value" : "" },
+	{ "tag" : "DF8109", "value" : "" },
+	{ "tag" : "DF62", "value" : "" },
+	{ "tag" : "DF810A", "value" : "" },
+	{ "tag" : "DF63", "value" : "" },
+	{ "tag" : "DF810D", "value" :  "" },
+	{ "tag" : "9F1E", "value" : "3232" },
+	{ "tag" : "DF810C", "value" : "02" },
+	{ "tag" : "9F6D", "value" : "0001" },
+	{ "tag" : "DF811E", "value" : "10" },
+	{ "tag" : "DF812C", "value" :  "00" },
+	{ "tag" : "DF811C", "value" : "0000" },
+	{ "tag" : "DF811D", "value" : "00" },
+	{ "tag" : "9F15", "value" : "1111" },
+	{ "tag" : "9F16", "value" : "" },
+	{ "tag" : "9F4E", "value" :  "" },
+	{ "tag" : "9F7E", "value" : "" },
+	{ "tag" : "DF8123", "value" : "000000010000" },
+	{ "tag" : "DF8124", "value" : "000000030000" },
+	{ "tag" : "DF8125", "value" : "000000050000" },
+	{ "tag" : "DF811F", "value" : "08" },
+	{ "tag" : "DF8120", "value" : "0000000000" },
+	{ "tag" : "DF8121", "value" : "0000000000" },
+	{ "tag" : "DF8122", "value" : "0000000000" },
+	{ "tag" : "9F33", "value" : "" },
+	{ "tag" : "9F1A", "value" : "0056" },
+	{ "tag" : "9F1C", "value" : "" }
+      ],
+      "application": [
+        {
+          "aid": "A0000000041010",
+          "config": [
+	   { "tag" : "9F35", "value" : "22" },
+	   { "tag" : "DF811B", "value" : "20" },
+	   { "tag" : "DF8126", "value" : "000000020000" }
+          ],
+          "transaction" : [
+            {
+              "transactionType": 0,
+              "aid": "A0000000041010",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": [
+		{ "tag" : "DF8126", "value" : "000000001000" },
+	        { "tag" :  "9F1D", "value" : "6CFF000000000000" }
+              ]
+            },
+            {
+              "transactionType": 1,
+              "aid": "A0000000041010",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": [
+		{ "tag" : "9F35", "value" : "14" }
+              ]
+            },
+            {
+              "transactionType": 9,
+              "aid": "A0000000041010",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": [
+	        { "tag" :  "9F1D", "value" : "" }
+              ]
+            },
+            {
+              "transactionType": 23,
+              "aid": "A0000000041010",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": [
+		{ "tag" : "9F35", "value" : "11" },
+		{ "tag" : "DF811E", "value" : "20" }
+              ]
+            },
+            {
+              "transactionType": 32,
+              "aid": "A0000000041010",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": []
+            }
+          ]
+        },
+        {
+          "aid": "A0000000043060",
+          "config": [
+	   { "tag" : "9F35", "value" : "22" },
+	   { "tag" : "DF811B", "value" : "A0" },
+	   { "tag" : "DF8126", "value" : "000000030000" },
+	   { "tag" : "9F1D", "value" : "44FF800000000000" }
+          ],
+          "transaction": [
+            {
+              "transactionType": 1,
+              "aid": "A0000000043060",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": [
+		{ "tag" : "9F35", "value" : "14" }
+              ]
+	    },
+            {
+              "transactionType": 23,
+              "aid": "A0000000043060",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": [
+		{ "tag" : "9F35", "value" : "11" },
+		{ "tag" : "DF811E", "value" : "F0" },
+		{ "tag" : "DF812C", "value" : "F0" }
+              ]
+	    },
+            {
+              "transactionType": 9,
+              "aid": "A0000000043060",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": []
+	    },
+            {
+              "transactionType": 0,
+              "aid": "A0000000043060",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": []
+	    },
+            {
+              "transactionType": 32,
+              "aid": "A0000000043060",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": []
+	    }
+	  ]
+	},
+        {
+          "aid": "B012345678",
+          "config": [
+	   { "tag" : "9F35", "value" : "22" },
+	   { "tag" : "DF8126", "value" : "000000010000" },
+	   { "tag" : "DF811B", "value" : "20" }
+          ],
+
+          "transaction": [
+            {
+              "transactionType": 0,
+              "aid": "B012345678",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": [
+		{ "tag" : "DF8126", "value" : "000000001000" }
+              ]
+	    },
+            {
+              "transactionType": 1,
+              "aid": "B012345678",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": [
+		{ "tag" : "9F35", "value" : "14" }
+              ]
+	    },
+            {
+              "transactionType": 23,
+              "aid": "B012345678",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": [
+		{ "tag" : "9F35", "value" : "11" }
+              ]
+	    },
+            {
+              "transactionType": 9,
+              "aid": "B012345678",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": []
+	    },
+            {
+              "transactionType": 32,
+              "aid": "B012345678",
+              "statusCheckSupportFlag": true,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "config": []
+	    }
+          ]
+        }
+      ]
+    }
+  ]
+}

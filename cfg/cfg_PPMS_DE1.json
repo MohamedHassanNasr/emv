@@ -1,0 +1,13 @@
+{
+  "name" : "PPMS_DE1",
+  "parent" : "PPMS_DEreferce",
+  "kernel": [
+    {
+      "kernelId": 2,
+      "config": [
+        { "tag": "DF8112", "value": "" },
+	{ "tag" : "C7", "value" :  "AABBCCDD" }
+      ]
+    }
+  ]
+}

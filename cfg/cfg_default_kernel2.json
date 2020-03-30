@@ -1,0 +1,45 @@
+{
+  "name"  : "default_kernel2",
+  "parent" : "default_terminal",
+  "kernel": [
+    {
+      "kernelId": 2,
+      "config": [
+	{ "tag" : "9F40", "value" : "0000000000" },
+	{ "tag" : "9F09", "value" :  "0002" },
+	{ "tag" : "DF8117", "value" : "00" },
+	{ "tag" : "DF8118", "value" :  "00" },
+	{ "tag" : "DF8119", "value" : "00" },
+	{ "tag" : "DF811A", "value" : "9F6A04" },
+	{ "tag" : "DF8130", "value" : "0D" },
+	{ "tag" : "DF811B", "value" : "00" },
+	{ "tag" : "DF810C", "value" : "02" },
+	{ "tag" : "9F6D", "value" : "0001" },
+	{ "tag" : "DF811E", "value" : "F0" },
+	{ "tag" : "DF812C", "value" : "F0" },
+	{ "tag" : "DF811C", "value" : "012C" },
+	{ "tag" : "DF811D", "value" : "00" },
+	{ "tag" : "DF812D", "value" : "000013" },
+	{ "tag" : "DF8133", "value" : "0032" },
+	{ "tag" : "DF8132", "value" : "0014" },
+	{ "tag" : "DF8131", "value" : "000001000001200000080000080020000004000004002000000100000100200000020000020020000000000000000700" },
+	{ "tag" : "DF8123", "value" : "000000000000" },
+	{ "tag" : "DF8124", "value" : "000000000000" },
+	{ "tag" : "DF8125", "value" : "000000000000" },
+	{ "tag" : "DF8126", "value" : "000000000000" },
+	{ "tag" : "DF8136", "value" : "012C" },
+	{ "tag" : "DF8137", "value" : "32" },
+	{ "tag" : "DF811F", "value" : "00" },
+	{ "tag" : "DF8120", "value" : "840000000C" },
+	{ "tag" : "DF8121", "value" : "840000000C" },
+	{ "tag" : "DF8122", "value" : "840000000C" },
+	{ "tag" : "9F1A", "value" :  "0000" },
+	{ "tag" : "DF8134", "value" : "0012" },
+	{ "tag" : "DF8135", "value" : "0018" },
+	{ "tag" : "9F35", "value" : "18" },
+	{ "tag" : "DF8127", "value" : "01F4" },
+	{ "tag" : "9C", "value" : "00" }
+      ]
+    }
+  ]
+}

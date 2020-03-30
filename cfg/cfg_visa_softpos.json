@@ -1,0 +1,271 @@
+{
+  "name" : "visa_default",
+  "kernel": [
+    {
+      "terminalEntryCapability": 8,
+      "fddaForOnlineSupported": true,
+      "displayAvailableSpendingAmount": true,
+      "aucManualCheckSupported": true,
+      "aucCashbackCheckSupported": true,
+      "atmOfflineCheck": true,
+      "exceptionFileEnabled": true,
+      "kernelId": 3,
+      "config": [
+        {
+          "tag": "9F33",
+          "value": "A048C8"
+        },
+        {
+          "tag": "9F40",
+          "value": "6000C03000"
+        },
+        {
+          "tag": "9F09",
+          "value": "0002"
+        },
+        {
+          "tag": "9F1A",
+          "value": "0840"
+        },
+        {
+          "tag": "9F35",
+          "value": "21"
+        },
+        {
+          "tag": "9C",
+          "value": "00"
+        }
+      ],
+      "application": [
+        {
+          "aid": "F1050000031010",
+          "config": [],
+          "transaction": [
+            {
+              "transactionType": 0,
+              "aid": "F1050000031010",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 8000,
+              "terminalFloorLimit": 200000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24004000"
+                }
+              ]
+            },
+            {
+              "transactionType": 9,
+              "aid": "F1050000031010",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24004000"
+                }
+              ]
+            },
+            {
+              "transactionType": 32,
+              "aid": "F1050000031010",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24004000"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "aid": "A0000000980840",
+          "config": [],
+          "transaction": [
+            {
+              "transactionType": 0,
+              "aid": "A0000000980840",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 8000,
+              "terminalFloorLimit": 200000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24004000"
+                }
+              ]
+            },
+            {
+              "transactionType": 9,
+              "aid": "A0000000980840",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24004000"
+                }
+              ]
+            },
+            {
+              "transactionType": 32,
+              "aid": "A0000000980840",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24004000"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "aid": "A0000000031010",
+          "config": [],
+          "transaction": [
+            {
+              "transactionType": 0,
+              "aid": "A0000000031010",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 8000,
+              "terminalFloorLimit": 200000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24004000"
+                }
+              ]
+            },
+            {
+              "transactionType": 9,
+              "aid": "A0000000031010",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24004000"
+                }
+              ]
+            },
+            {
+              "transactionType": 32,
+              "aid": "A0000000031010",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24004000"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "aid": "A000000003",
+          "config": [],
+          "transaction": [
+            {
+              "transactionType": 0,
+              "aid": "A000000003",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 8000,
+              "terminalFloorLimit": 200000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24004000"
+                }
+              ]
+            },
+            {
+              "transactionType": 9,
+              "aid": "A000000003",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24004000"
+                }
+              ]
+            },
+            {
+              "transactionType": 32,
+              "aid": "A000000003",
+              "statusCheckSupportFlag": false,
+              "zeroAmountAllowedFlag": true,
+              "extendedSelectionSupportFlag": false,
+              "readerContactlessTransactionLimit": 20000,
+              "readerContactlessFloorLimit": 0,
+              "readerCVMRequiredLimit": 3000,
+              "terminalFloorLimit": 10000,
+              "config": [
+                {
+                  "tag": "9F66",
+                  "value": "24004000"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
