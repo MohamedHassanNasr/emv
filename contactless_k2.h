@@ -1234,9 +1234,9 @@ private:
                 }
 
                 // S78.15
-                std::vector<uint8_t> randoms(4);
-                get_randoms(randoms.data(), randoms.size());
-                pr_debug("generated UNPREDICTABLE_NUMBER_NUMERIC_9F6A : ", randoms, "\n");
+                // reuse UNPREDICTABLE_NUMBER_9F37 for UNPREDICTABLE_NUMBER_NUMERIC_9F6A
+                std::vector<uint8_t> randoms = kernel_db[UNPREDICTABLE_NUMBER_9F37];
+
                 // convent to bcd
                 std::vector<uint8_t> bcd = to_bcd(randoms);
                 bcd.resize(randoms.size());

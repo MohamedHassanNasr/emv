@@ -68,14 +68,6 @@ namespace emv {
 #define pr_error(...)
 #endif
 
-// some system dependent service routine
-// for date/time, random number generator, RSA/SHA
-extern std::vector<uint8_t> get_yymmdd();
-
-extern std::vector<uint8_t> get_hhmmss();
-
-void get_randoms(uint8_t* p, size_t length);
-
 void bignum_exp_modulus(const std::vector<uint8_t>& base,
                         const std::vector<uint8_t>& exponent,
                         const std::vector<uint8_t>& modulus,
@@ -4617,11 +4609,19 @@ public:
             logger.info("receiving L2 start transaction: ", body, "\n");
             tlv_db transaction_req{};
             transaction_req.parse(body);
-            auto date = get_yymmdd();
-            transaction_req.emplace(TRANSACTION_DATE_9A.id, std::move(date));
-            auto time = get_hhmmss();
-            transaction_req.emplace(TRANSACTION_TIME_9F21.id, std::move(time));
-            start_transaction(transaction_req);
+
+            ///check the mandatory elements
+            if (transaction_req.has_tag(TRANSACTION_DATE_9A) &&
+                transaction_req.has_tag(TRANSACTION_TIME_9F21) &&
+                transaction_req.has_tag(UNPREDICTABLE_NUMBER_9F37)) {
+                start_transaction(transaction_req);
+            }
+            else
+            {
+                pr_error("fatal error, mandatory TLV missing from transaction request!!!\n");
+                transaction_req.print();
+                throw std::bad_exception();
+            }
             break;
         }
         default:
@@ -5164,7 +5164,7 @@ public:
             return false;
         }
 
-        std::vector<uint8_t> today = get_yymmdd();
+        auto& today = db[TRANSACTION_DATE_9A];
         std::vector<uint8_t> date{recovered.cbegin() + 12, recovered.cbegin() + 14}; // MMYY
         if (date[1] < today[0] || (date[1] == today[0] && date[0] < today[1])) {
             pr_debug("icc certificate date ", date, " expired, today ", today, "\n");
@@ -5242,7 +5242,7 @@ public:
             return false;
         }
 
-        std::vector<uint8_t> today = get_yymmdd();
+        auto& today = db[TRANSACTION_DATE_9A];
         std::vector<uint8_t> date{recovered.cbegin() + 6, recovered.cbegin() + 8}; // MMYY
         if (date[1] < today[0] || (date[1] == today[0] && date[0] < today[1])) {
             pr_debug("issuer certificate date ", date, " expired, today ", today, "\n");
@@ -5410,13 +5410,8 @@ private:
             }
         };
 
-        std::vector<uint8_t> randoms(UNPREDICTABLE_NUMBER_9F37.maxlen);
-        get_randoms(randoms.data(), randoms.size());
-        tlv_obj un_9f37{UNPREDICTABLE_NUMBER_9F37.id, randoms};
-
         for (auto& combo : combinations) {
             combo.db.insert(transaction_req);
-            combo.db.insert(un_9f37);
             combination_preprocessing(combo, transact_type);
             if (!combo.indicator.contactless_not_allowed) {
                 contactless_not_allowed = false;

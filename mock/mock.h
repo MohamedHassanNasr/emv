@@ -126,7 +126,17 @@ public:
 
     void start_transaction() {
         auto req = hex2vector(transaction_req);
-        message out{MESSAGE_ID::L2_START_TRANSACTION, EMV_MODULE::TERMINAL, EMV_MODULE::L2, req};
+
+        tlv_db transaction_req{};
+        transaction_req.parse(req);
+
+        // insert missing element into request
+        std::vector<uint8_t> randoms(UNPREDICTABLE_NUMBER_9F37.maxlen);
+        get_randoms(randoms.data(), randoms.size());
+        transaction_req.emplace(UNPREDICTABLE_NUMBER_9F37.id, randoms);
+        transaction_req.emplace(TRANSACTION_DATE_9A.id, get_yymmdd());
+        transaction_req.emplace(TRANSACTION_TIME_9F21.id, get_hhmmss());
+        message out{MESSAGE_ID::L2_START_TRANSACTION, EMV_MODULE::TERMINAL, EMV_MODULE::L2, transaction_req.serialize()};
         out.send();
     };
 

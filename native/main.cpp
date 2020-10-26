@@ -127,6 +127,8 @@ static mock_module mock{};
 // working with layer one mock means we need to feed kernel with
 // expected random number that match the test sequence
 bool mock_mode = false;
+
+#if 0
 void emv::get_randoms(uint8_t* p, size_t length) {
     mock.get_randoms(p, length);
 };
@@ -160,6 +162,7 @@ std::vector<uint8_t> emv::get_hhmmss() {
     sprintf(buf, "%2d%2d%2d", hour, minute, second);
     return emv::TRANSACTION_TIME_9F21.from_string(std::string(buf));
 };
+#endif
 
 emv::contactless::reader_cfg contactless_cfg;
 emv::contactless::modulel2 contactlessl2(contactless_cfg);
