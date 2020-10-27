@@ -35,6 +35,8 @@
 #ifndef MESSAGE_AND_ID_H
 #define MESSAGE_AND_ID_H
 
+#include <cstdint>
+
 namespace emv {
 enum class ui_message_id : uint8_t {
     APPROVED = 0x03,

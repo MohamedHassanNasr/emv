@@ -1,11 +1,19 @@
 #ifndef OS_LINUX
 #define OS_LINUX
 
-#include <strings.h>
+#include "emv.h"
 
+// some utility class and routines for a linux environment
+// which can fill the platform dependency by emv kernel
+#include <strings.h>
 #include <arpa/inet.h>
+#include <chrono>
+#include <condition_variable>
+#include <ctime>
 #include <map>
 #include <memory>
+#include <mutex>
+#include <random>
 #include <sys/socket.h>
 #include <thread>
 #include <unistd.h>
@@ -114,6 +122,82 @@ public:
     virtual std::unique_ptr<timer> create(long msecs, std::function<void()> timer_callback) override {
         return std::unique_ptr<timer>(new unix_timer{msecs, timer_callback});
     }
+};
+
+struct default_rng {
+    void operator()(uint8_t* ptr, size_t size) const
+    {
+        static std::random_device rd;
+        static std::default_random_engine dre(rd());
+        std::uniform_int_distribution<int> di(0, 255);
+        while (size--) {
+            *ptr++ = static_cast<uint8_t>(di(dre));
+        }
+    }
+
+    std::vector<uint8_t> operator()(size_t size) const
+    {
+        std::vector<uint8_t> v(size);
+        (*this)(v.data(), v.size());
+        return v;
+    }
+};
+
+struct wall_clock {
+    std::vector<uint8_t> yymmdd() const
+    {
+        std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+        std::time_t t = std::chrono::system_clock::to_time_t(now);
+        tm local_tm = *localtime(&t);
+        int year = (local_tm.tm_year + 1900) % 100;
+        int month = local_tm.tm_mon + 1;
+        int day = local_tm.tm_mday;
+        char buf[7];
+        sprintf(buf, "%2d%2d%2d", year, month, day);
+        return emv::TRANSACTION_DATE_9A.from_string(std::string(buf));
+    };
+
+    std::vector<uint8_t> hhmmss() const
+    {
+        std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+        std::time_t t = std::chrono::system_clock::to_time_t(now);
+        tm local_tm = *localtime(&t);
+        int hour = local_tm.tm_hour;
+        int minute = local_tm.tm_min;
+        int second = local_tm.tm_sec;
+        char buf[7];
+        sprintf(buf, "%2d%2d%2d", hour, minute, second);
+        return emv::TRANSACTION_TIME_9F21.from_string(std::string(buf));
+    };
+};
+
+class global_locker : public emv::mqueue::qlocker
+{
+public:
+    virtual void lock() override
+    {
+        m.lock();
+    };
+
+    virtual void unlock() override
+    {
+        m.unlock();
+    };
+
+    virtual void wait(std::function<bool()> cond) override
+    {
+        std::unique_lock<std::mutex> ul(m);
+        cv.wait(ul, cond);
+    };
+
+    virtual void notify() override
+    {
+        cv.notify_one();
+    };
+
+private:
+    std::mutex m;
+    std::condition_variable cv;
 };
 
 #endif

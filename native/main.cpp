@@ -40,11 +40,7 @@
 #include "emv.h"
 #include "mock.h"
 #include "os_linux.h"
-#include <chrono>
-#include <condition_variable>
-#include <ctime>
 #include <fstream>
-#include <mutex>
 
 using namespace std::chrono;
 
@@ -89,30 +85,6 @@ void emv::Logger::log(const char* str) {
 };
 
 emv::Logger emv::logger{};
-
-class global_locker : public emv::mqueue::qlocker {
-public:
-    virtual void lock() override {
-        m.lock();
-    };
-
-    virtual void unlock() override {
-        m.unlock();
-    };
-
-    virtual void wait(std::function<bool()> cond) override {
-        std::unique_lock<std::mutex> ul(m);
-        cv.wait(ul, cond);
-    };
-
-    virtual void notify() override {
-        cv.notify_one();
-    };
-
-private:
-    std::mutex m;
-    std::condition_variable cv;
-};
 global_locker Qlocker;
 
 using namespace std;
@@ -124,46 +96,7 @@ emv::timer_factory* emv::emv_timer_factory = &local_timer_factory;
 
 static mock_module mock{};
 
-// working with layer one mock means we need to feed kernel with
-// expected random number that match the test sequence
 bool mock_mode = false;
-
-#if 0
-void emv::get_randoms(uint8_t* p, size_t length) {
-    mock.get_randoms(p, length);
-};
-
-std::vector<uint8_t> emv::get_yymmdd() {
-    if (mock_mode)
-        return mock.get_yymmdd();
-
-    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-    std::time_t t = std::chrono::system_clock::to_time_t(now);
-    tm local_tm = *localtime(&t);
-    int year = (local_tm.tm_year + 1900) % 100;
-    int month = local_tm.tm_mon + 1;
-    int day = local_tm.tm_mday;
-    char buf[7];
-    sprintf(buf, "%2d%2d%2d", year, month, day);
-    return emv::TRANSACTION_DATE_9A.from_string(std::string(buf));
-};
-
-std::vector<uint8_t> emv::get_hhmmss() {
-    if (mock_mode)
-        return mock.get_hhmmss();
-
-    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-    std::time_t t = std::chrono::system_clock::to_time_t(now);
-    tm local_tm = *localtime(&t);
-    int hour = local_tm.tm_hour;
-    int minute = local_tm.tm_min;
-    int second = local_tm.tm_sec;
-    char buf[7];
-    sprintf(buf, "%2d%2d%2d", hour, minute, second);
-    return emv::TRANSACTION_TIME_9F21.from_string(std::string(buf));
-};
-#endif
-
 emv::contactless::reader_cfg contactless_cfg;
 emv::contactless::modulel2 contactlessl2(contactless_cfg);
 emv::mqueue queue(&Qlocker);
