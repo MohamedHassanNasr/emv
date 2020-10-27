@@ -3281,6 +3281,12 @@ public:
         locker->notify();
     }
 
+    bool sync_exec(std::function<bool()> action)
+    {
+        mq_lock_guard guard(locker);
+        return action();
+    }
+
     void loop() {
         while (true) {
             locker->wait([&] { return !queue.empty(); });
