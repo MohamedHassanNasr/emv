@@ -3250,6 +3250,7 @@ public:
     };
 
     mqueue(qlocker* locker) : locker(locker){};
+    mqueue(qlocker* locker, std::vector<emv_module*> consumers) : locker(locker), consumers(consumers){};
 
     void add_consumer(emv_module* consumer) {
         consumers.push_back(consumer);
