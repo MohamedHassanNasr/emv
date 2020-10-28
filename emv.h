@@ -3162,7 +3162,7 @@ public:
 class message;
 class message_router {
 public:
-    virtual void post(const message& msg) = 0;
+    virtual void post(message&& msg) = 0;
     virtual void start() = 0;
 };
 
@@ -3192,7 +3192,12 @@ class message {
 public:
     static constexpr int MAX_MESSAGE_LENGTH = 512;
     message(const std::vector<uint8_t> msg) : data(msg){};
-    message(std::vector<uint8_t>&& msg) : data(msg){};
+    message(std::vector<uint8_t>&& msg) : data(std::move(msg)){};
+    message(message const& msg) = default;
+    message(message&& msg) = default;
+    message& operator=(message const& msg) = default;
+    message& operator=(message&& msg) = default;
+
     message(MESSAGE_ID id, EMV_MODULE src, EMV_MODULE dest, const std::vector<uint8_t> body = std::vector<uint8_t>()) {
         data.resize(3 + body.size());
         data[0] = static_cast<uint8_t>(id);
@@ -3208,7 +3213,7 @@ public:
     std::vector<uint8_t>::const_iterator body_end() const { return data.cend(); };
     const std::vector<uint8_t>& get_raw_data() const { return data; };
     void send() {
-        emv_message_router->post(*this);
+        emv_message_router->post(std::move(*this));
     }
 
 private:
@@ -3268,12 +3273,6 @@ public:
     bool empty() const {
         return queue.empty();
     };
-
-    void post(const message& msg) {
-        mq_lock_guard guard(locker);
-        queue.push_back(msg);
-        locker->notify();
-    }
 
     void post(message&& msg) {
         mq_lock_guard guard(locker);

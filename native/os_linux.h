@@ -42,10 +42,11 @@ public:
         remote.sin_port = htons(remote_port);
     };
 
-    virtual void post(const message& msg) override {
+    virtual void post(message&& msg) override
+    {
         if (queue->have_consumer(msg)) {
             // Adding a message to the queue.
-            queue->post(msg);
+            queue->post(std::move(msg));
         } else {
             // Sending a message via external interface.
             send(msg);
