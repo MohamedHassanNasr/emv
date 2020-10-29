@@ -22,7 +22,7 @@ for example, following command can execute a mastercard offline transaction test
 
 ./build/emv --mock ./mock/mock-msc-offline.json --cfg ./cfg/cfg_default_terminal.json ./cfg/cfg_PPS_MChip1.json ./cfg/cfg_PPS_Perf_MC.json
 
-the test environment also allow you run you emv kernel from your PC, but run L1 NFC from your Android phone. In this case there is android demo app running on phone, which talks to EMV kernel through UDP (message is routed across network between L1/L2)
+the test environment also allow you run you emv kernel from your PC, but run L1 NFC and terminal function from your Android phone. In this case there is an android app that talks to EMV kernel through UDP (message is routed across network between L1/L2)
 
 emv --ip 192.168.178.35 --cfg ./cfg/cfg_default_terminal.json ./cfg/cfg_PPS_MChip1.json ./cfg/cfg_PPS_Perf_MC.json ./cfg/cfg_visa.json ./cfg/cfg_test_cert_override.json
 
@@ -46,6 +46,6 @@ main.cpp implements the interface required by EMV kernel, like crypto, timing, c
 
 mock.h can be useful reference to implement the terminal function, where transaction is started, ui mesage displayed, and online request getting handled, as well as L1 messaging.
 
-android nfc app (git@github.com:daddyofqq/nfc-reader.git) provides another perspective to implement L1 and Terminal.
+android nfc app (git@github.com:daddyofqq/nfc-reader.git) provides good reference in terms of how to integrate emv kernel into a real product. The android app has two modes. It can invoke emv kernel running in jni native, and also talk to a remote emv kernel through network.
 
 The crypto for RSA, SHA1 (and AES to add later) are currently using mbedtls library. You are welcome to choose whatever is available on your target platform.

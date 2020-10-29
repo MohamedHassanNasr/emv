@@ -57,10 +57,10 @@ template <>
 struct hash<secure_string> {
     size_t operator()(const secure_string& k) const
     {
-        std::string s(k.begin(), k.end());
-        auto h = std::hash<std::string>{}(s);
-        for (auto& x : s) // erase the unsecure copy
-            x = 0;
+        size_t h = 5381;
+        for (auto& x : k) {
+            h = 33 * h ^ static_cast<unsigned char>(x);
+        }
         return h;
     }
 };
