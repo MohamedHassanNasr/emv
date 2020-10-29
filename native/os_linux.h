@@ -70,7 +70,7 @@ public:
 
 private:
     bool send(const message& msg) {
-        const std::vector<uint8_t>& buffer = msg.get_raw_data();
+        const secure_vector& buffer = msg.get_raw_data();
         if (sendto(sock, reinterpret_cast<const char*>(buffer.data()), buffer.size(), 0,
                    (struct sockaddr*)&remote, sizeof(remote)) <= 0) {
             perror("send failed");
@@ -81,7 +81,7 @@ private:
     }
 
     bool recv() {
-        std::vector<uint8_t> buffer(message::MAX_MESSAGE_LENGTH);
+        secure_vector buffer(message::MAX_MESSAGE_LENGTH);
         struct sockaddr_in sender;
         socklen_t sendsize = sizeof(sender);
         ssize_t msgLen = recvfrom(sock, reinterpret_cast<char*>(buffer.data()), buffer.capacity(), 0,
@@ -136,16 +136,16 @@ struct default_rng {
         }
     }
 
-    std::vector<uint8_t> operator()(size_t size) const
+    secure_vector operator()(size_t size) const
     {
-        std::vector<uint8_t> v(size);
+        secure_vector v(size);
         (*this)(v.data(), v.size());
         return v;
     }
 };
 
 struct wall_clock {
-    std::vector<uint8_t> yymmdd() const
+    secure_vector yymmdd() const
     {
         std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
         std::time_t t = std::chrono::system_clock::to_time_t(now);
@@ -155,10 +155,10 @@ struct wall_clock {
         int day = local_tm.tm_mday;
         char buf[7];
         sprintf(buf, "%2d%2d%2d", year, month, day);
-        return emv::TRANSACTION_DATE_9A.from_string(std::string(buf));
+        return emv::TRANSACTION_DATE_9A.from_string(secure_string(buf));
     };
 
-    std::vector<uint8_t> hhmmss() const
+    secure_vector hhmmss() const
     {
         std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
         std::time_t t = std::chrono::system_clock::to_time_t(now);
@@ -168,7 +168,7 @@ struct wall_clock {
         int second = local_tm.tm_sec;
         char buf[7];
         sprintf(buf, "%2d%2d%2d", hour, minute, second);
-        return emv::TRANSACTION_TIME_9F21.from_string(std::string(buf));
+        return emv::TRANSACTION_TIME_9F21.from_string(secure_string(buf));
     };
 };
 

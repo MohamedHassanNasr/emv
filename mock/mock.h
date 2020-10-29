@@ -45,7 +45,7 @@ public:
             logger.debug("<< ==== TERMINAL TRANSATION COMPLETE ===>>\n");
             if (body.size() > 0) {
                 logger.debug("CVM : ", emv::to_string(narrow_cast<OUTCOME_CVM>(body[0])), "\n");
-                std::vector<uint8_t> record{body.begin() + 1, body.end()};
+                secure_vector record{body.begin() + 1, body.end()};
                 logger.debug("RECORD ", record, "\n");
             };
             break;
@@ -58,8 +58,8 @@ public:
             // TODO later
 #if 0
             auto qualifier = static_cast<ui_value_id>(body[2]);
-            std::vector<uint8_t> value(body.begin() + 3, body.begin() + 9);
-            std::vector<uint8_t> currency(body.begin() + 9, body.end());
+            secure_vector value(body.begin() + 3, body.begin() + 9);
+            secure_vector currency(body.begin() + 9, body.end());
 
             if (qualifier == ui_value_id::AMOUNT) {
                 logger.debug("Amount : <currency code ", currency, "> ", value, "\n");
@@ -70,7 +70,7 @@ public:
             break;
         }
         case MESSAGE_ID::L1_POWER_UP: {
-            std::vector<uint8_t> resp;
+            secure_vector resp;
             if (express_mode) {
                 for (auto& p : apdus) {
                     auto sel = p.first.substr(0, 8);
@@ -97,18 +97,18 @@ public:
             pr_debug("<< ======= TERMINAL ONLINE =====>\n");
             auto body = msg.get_body();
             logger.debug("CVM : ", emv::to_string(narrow_cast<OUTCOME_CVM>(body[0])), "\n");
-            std::vector<uint8_t> record{body.begin() + 1, body.end()};
+            secure_vector record{body.begin() + 1, body.end()};
             logger.debug("RECORD ", record, "\n");
 
-            std::vector<uint8_t> resp;
+            secure_vector resp;
             message out{MESSAGE_ID::L2_CONTINUE_TRANSACT_WITH_ONLINE_RESP, EMV_MODULE::TERMINAL, EMV_MODULE::L2, resp};
             out.send();
             break;
         }
         case MESSAGE_ID::L1_TX_DATA: {
-            std::string body = vector2hex(msg.get_body());
-            auto p = apdus.find(body);
-            std::vector<uint8_t> resp;
+            secure_string body = vector2hex(msg.get_body());
+            auto p = apdus.find(std::string(body.begin(), body.end()));
+            secure_vector resp;
             if (p != apdus.end()) {
                 resp = hex2vector(p->second);
             } else {
@@ -131,7 +131,7 @@ public:
         transaction_req.parse(req);
 
         // insert missing element into request
-        std::vector<uint8_t> randoms(UNPREDICTABLE_NUMBER_9F37.maxlen);
+        secure_vector randoms(UNPREDICTABLE_NUMBER_9F37.maxlen);
         get_randoms(randoms.data(), randoms.size());
         transaction_req.emplace(UNPREDICTABLE_NUMBER_9F37.id, randoms);
         transaction_req.emplace(TRANSACTION_DATE_9A.id, get_yymmdd());
@@ -152,11 +152,11 @@ public:
         }
     };
 
-    std::vector<uint8_t> get_yymmdd() {
+    secure_vector get_yymmdd() {
         return hex2vector(yymmdd);
     };
 
-    std::vector<uint8_t> get_hhmmss() {
+    secure_vector get_hhmmss() {
         return hex2vector(hhmmss);
     };
 

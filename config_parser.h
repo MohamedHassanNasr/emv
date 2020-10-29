@@ -52,7 +52,8 @@ public:
         auto j_exceptons = j["exceptionFile"];
         for (auto& j_exception : j_exceptons) {
             if (!j_exception.is_null() && j_exception.is_string()) {
-                cfg.exceptions.insert(std::string(j_exception));
+                std::string s_exception = j_exception;
+                cfg.exceptions.insert(secure_string(s_exception.begin(), s_exception.end()));
             };
         }
 

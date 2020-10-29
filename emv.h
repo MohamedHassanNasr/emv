@@ -38,7 +38,7 @@
 #define EMV_H
 
 #include "message_and_id.h"
-
+#include "secure_allocator.h"
 #include <algorithm>
 #include <array>
 #include <exception>
@@ -69,10 +69,10 @@ namespace emv {
 #define pr_error(...)
 #endif
 
-void bignum_exp_modulus(const std::vector<uint8_t>& base,
-                        const std::vector<uint8_t>& exponent,
-                        const std::vector<uint8_t>& modulus,
-                        std::vector<uint8_t>& result);
+void bignum_exp_modulus(const secure_vector& base,
+                        const secure_vector& exponent,
+                        const secure_vector& modulus,
+                        secure_vector& result);
 void compute_sha1(const uint8_t* data, size_t length, uint8_t* hash);
 
 static constexpr std::array<uint8_t, 5> VISA_AID = {0xA0, 0x00, 0x00, 0x00, 0x03};
@@ -104,8 +104,9 @@ static inline uint8_t hex2nibble(char h) {
     return (h - 'a' + 10) & 0x0F;
 };
 
-static std::string to_decimal(uint32_t num, int digits = 0) {
-    std::string ret{};
+static secure_string to_decimal(uint32_t num, int digits = 0)
+{
+    secure_string ret{};
     while (num || digits) {
         char c = '0' + (num % 10);
         ret.push_back(c);
@@ -115,13 +116,14 @@ static std::string to_decimal(uint32_t num, int digits = 0) {
     }
 
     if (ret.size() == 0)
-        ret = std::string{"0"};
+        ret = secure_string{"0"};
 
     std::reverse(ret.begin(), ret.end());
     return ret;
 };
 
-static std::string to_decimal(const std::vector<uint8_t>& v) {
+static secure_string to_decimal(const secure_vector& v)
+{
     uint32_t ret = 0;
     for (auto b : v) {
         ret = ((ret) << 8) + b;
@@ -130,13 +132,13 @@ static std::string to_decimal(const std::vector<uint8_t>& v) {
     return to_decimal(ret);
 };
 
-static std::vector<uint8_t> to_bcd(const std::vector<uint8_t>& bin) {
+static secure_vector to_bcd(const secure_vector& bin) {
     uint32_t v = 0;
     for (auto b : bin) {
         v = ((v) << 8) + b;
     };
 
-    std::vector<uint8_t> bcd{};
+    secure_vector bcd{};
     while (v) {
         uint8_t d = v % 10;
         v = v / 10;
@@ -153,8 +155,9 @@ static std::vector<uint8_t> to_bcd(const std::vector<uint8_t>& bin) {
     return bcd;
 };
 
-static std::vector<uint8_t> hex2vector(const std::string& hex) {
-    std::vector<uint8_t> v(hex.size() / 2);
+static secure_vector hex2vector(const std::string& hex)
+{
+    secure_vector v(hex.size() / 2);
     for (unsigned i = 0; i != v.size(); i++) {
         uint8_t b = hex2nibble(hex[i << 1]);
         b = (b << 4) | hex2nibble(hex[(i << 1) + 1]);
@@ -163,8 +166,9 @@ static std::vector<uint8_t> hex2vector(const std::string& hex) {
     return v;
 };
 
-static std::string vector2hex(const std::vector<uint8_t>& v) {
-    std::string hex{};
+static secure_string vector2hex(const secure_vector& v)
+{
+    secure_string hex{};
     for (auto b : v) {
         hex.push_back(nibble2hex(b >> 4));
         hex.push_back(nibble2hex(b & 0x0F));
@@ -173,7 +177,7 @@ static std::string vector2hex(const std::vector<uint8_t>& v) {
 };
 
 // only useful for 4 bytes and below
-static uint32_t vector2int(const std::vector<uint8_t>& v) {
+static uint32_t vector2int(const secure_vector& v) {
     uint32_t r = 0;
     for (unsigned i = 0; i != v.size(); i++) {
         r = (r << 8) | v[i];
@@ -181,14 +185,16 @@ static uint32_t vector2int(const std::vector<uint8_t>& v) {
     return r;
 };
 
-static inline std::string byte2hex(uint8_t b) {
-    std::string str{};
+static inline secure_string byte2hex(uint8_t b)
+{
+    secure_string str{};
     str.push_back(nibble2hex(b >> 4));
     str.push_back(nibble2hex(b & 0x0F));
     return str;
 };
 
-std::string to_hex(uint32_t i) {
+std::string to_hex(uint32_t i)
+{
     std::string hex;
     uint32_t mask = 0xFF000000;
     int shift = 24;
@@ -254,12 +260,17 @@ public:
 private:
     void log(const std::string& msg);
     void log(const char* str);
+    void log(const secure_string& msg)
+    {
+        std::string s(msg.begin(), msg.end());
+        log(s);
+    }
 
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
     void log(T i) {
         log(std::to_string(i));
     }
-    void log(const std::vector<uint8_t>& bytes) {
+    void log(const secure_vector& bytes) {
         log(vector2hex(bytes));
     };
 
@@ -276,8 +287,21 @@ private:
 
 extern Logger logger;
 
-Logger& operator<<(Logger& l, std::string msg) {
+Logger& operator<<(Logger& l, std::string const& msg)
+{
     l.info(msg);
+    return l;
+}
+
+Logger& operator<<(Logger& l, secure_string const& msg)
+{
+    l.info(msg);
+    return l;
+}
+
+Logger& operator<<(Logger& l, const char* msg)
+{
+    l.info(std::string(msg));
     return l;
 }
 
@@ -286,7 +310,7 @@ Logger& operator<<(Logger& l, int num) {
     return l;
 }
 
-Logger& operator<<(Logger& l, const std::vector<uint8_t>& bytes) {
+Logger& operator<<(Logger& l, const secure_vector& bytes) {
     l.info(bytes);
     return l;
 }
@@ -331,8 +355,8 @@ bool tlv_get_length(Iter& begin, Iter end, uint32_t& length) {
     return true;
 }
 
-std::vector<uint8_t> tag_in_bytes(uint32_t tag) {
-    std::vector<uint8_t> ret{};
+secure_vector tag_in_bytes(uint32_t tag) {
+    secure_vector ret{};
     uint8_t shift = 24;
     uint32_t mask = 0xFF000000;
     while (mask != 0 && (tag & mask) == 0) {
@@ -350,8 +374,8 @@ std::vector<uint8_t> tag_in_bytes(uint32_t tag) {
     return ret;
 };
 
-std::vector<uint8_t> make_tlv(uint32_t tag, const std::vector<uint8_t>& value){
-    std::vector<uint8_t> ret{};
+secure_vector make_tlv(uint32_t tag, const secure_vector& value){
+    secure_vector ret{};
     uint8_t shift = 24;
     uint32_t mask = 0xFF000000;
     while (mask != 0 && (tag & mask) == 0) {
@@ -480,17 +504,18 @@ struct tag_info {
     uint8_t maxlen;
     TAG_PERM perm;
 
-    virtual bool validate(const std::vector<uint8_t>& value) const {
+    virtual bool validate(const secure_vector& value) const {
         return value.size() >= minlen && value.size() <= maxlen;
     };
-    virtual std::vector<uint8_t> DOL(const std::vector<uint8_t>& value, size_t length) const {
-        std::vector<uint8_t> ret(value);
+    virtual secure_vector DOL(const secure_vector& value, size_t length) const {
+        secure_vector ret(value);
         ret.resize(length);
         return ret;
     }
 
-    virtual std::string to_string(const std::vector<uint8_t>& v) const {
-        std::string ret{};
+    virtual secure_string to_string(const secure_vector& v) const
+    {
+        secure_string ret{};
         for (auto b : v) {
             ret.push_back(nibble2hex(b >> 4));
             ret.push_back(nibble2hex(b & 0x0F));
@@ -520,8 +545,9 @@ using tag_sets = std::unordered_set<const tag_info*, tag_hash, tag_eq>;
 struct tag_ans : tag_info {
     constexpr tag_ans(int id, const char* desc, uint8_t minlen, uint8_t maxlen, TAG_PERM perm = PERM_K) : tag_info(id, TAG_TYPE::ANS, desc, minlen, maxlen, perm){};
 
-    virtual std::string to_string(const std::vector<uint8_t>& value) const override {
-        std::string ret{};
+    virtual secure_string to_string(const secure_vector& value) const override
+    {
+        secure_string ret{};
         for (auto b : value) {
             ret.push_back(static_cast<char>(b));
         }
@@ -532,10 +558,11 @@ struct tag_ans : tag_info {
 struct tag_an : tag_info {
     constexpr tag_an(int id, const char* desc, uint8_t minlen, uint8_t maxlen, TAG_PERM perm = PERM_K) : tag_info(id, TAG_TYPE::ANS, desc, minlen, maxlen, perm){};
 
-    virtual std::string to_string(const std::vector<uint8_t>& value) const override {
-        std::string ret{};
+    virtual secure_string to_string(const secure_vector& value) const override
+    {
+        secure_string ret{};
         for (auto b : value) {
-            ret.push_back(static_cast<std::string::value_type>(b));
+            ret.push_back(static_cast<secure_string::value_type>(b));
         }
         return ret;
     };
@@ -546,8 +573,9 @@ struct tag_n : tag_info {
     constexpr tag_n(uint32_t id, const char* desc, uint8_t minlen, uint8_t maxlen, TAG_PERM perm = PERM_K) : tag_info{id, TAG_TYPE::N, desc, minlen, maxlen, perm} {};
 
     // ignore leading '0'
-    std::string to_string(const std::vector<uint8_t>& v) const override {
-        auto ret = std::string{};
+    secure_string to_string(const secure_vector& v) const override
+    {
+        secure_string ret{};
         bool ignore_zero = true;
 
         for (auto b : v) {
@@ -571,9 +599,10 @@ struct tag_n : tag_info {
         return ret;
     }
 
-    std::vector<uint8_t> from_string(const std::string& s) const {
+    secure_vector from_string(const secure_string& s) const
+    {
         int size = (maxlen + 1) / 2;
-        std::vector<uint8_t> ret(size);
+        secure_vector ret(size);
         auto p = s.rbegin();
         while (p != s.rend() && size-- > 0) {
             uint8_t b = ((*p - '0') & 0x0F);
@@ -587,8 +616,8 @@ struct tag_n : tag_info {
         return ret;
     }
 
-    virtual std::vector<uint8_t> DOL(const std::vector<uint8_t>& value, size_t length) const override {
-        std::vector<uint8_t> ret{};
+    virtual secure_vector DOL(const secure_vector& value, size_t length) const override {
+        secure_vector ret{};
         if (value.size() > length) { // leftmost truncated
             std::copy(value.begin() + (value.size() - length), value.end(), back_inserter(ret));
             return ret;
@@ -603,7 +632,7 @@ struct tag_n : tag_info {
         return b >= 0 && b <= 9;
     }
 
-    static numeric_value_type to_numeric_value(const std::vector<uint8_t>& v) {
+    static numeric_value_type to_numeric_value(const secure_vector& v) {
         numeric_value_type ret = 0;
         for (auto b : v) {
             ret = 10 * ret + ((b >> 4) & 0x0F);
@@ -612,7 +641,7 @@ struct tag_n : tag_info {
         return ret;
     }
 
-    virtual bool validate(const std::vector<uint8_t>& v) const override {
+    virtual bool validate(const secure_vector& v) const override {
         if (v.size() > static_cast<unsigned int>((maxlen + 1) / 2) ||
             v.size() < static_cast<unsigned int>((minlen + 1) / 2))
             return false;
@@ -628,7 +657,8 @@ struct tag_n : tag_info {
 
 struct tag_date : tag_n {
     constexpr tag_date(uint32_t id, const char* desc, TAG_PERM perm = PERM_K) : tag_n(id, desc, 6, 6, perm){};
-    std::string to_string(const std::vector<uint8_t>& v) const override {
+    secure_string to_string(const secure_vector& v) const override
+    {
         return vector2hex(v);
     }
 };
@@ -637,8 +667,9 @@ struct tag_cn : tag_info {
     constexpr tag_cn(uint32_t id, const char* desc, uint8_t minlen, uint8_t maxlen, TAG_PERM perm = PERM_K) : tag_info{id, TAG_TYPE::CN, desc, minlen, maxlen, perm} {};
 
     // ignore trailing padding 'F' or whatever
-    std::string to_string(const std::vector<uint8_t>& v) const override {
-        auto ret = std::string{};
+    secure_string to_string(const secure_vector& v) const override
+    {
+        secure_string ret{};
         for (auto b : v) {
             auto n = b >> 4;
             if (n <= 9)
@@ -654,12 +685,13 @@ struct tag_cn : tag_info {
         return ret;
     }
 
-    std::vector<uint8_t> from_string(const std::string& d) {
-        return std::vector<uint8_t>();
+    secure_vector from_string(const secure_string& d)
+    {
+        return secure_vector();
     }
 
-    virtual std::vector<uint8_t> DOL(const std::vector<uint8_t>& value, size_t length) const override {
-        std::vector<uint8_t> ret(value);
+    virtual secure_vector DOL(const secure_vector& value, size_t length) const override {
+        secure_vector ret(value);
         if (value.size() < length) {
             for (unsigned i = 0; i != length - value.size(); i++) {
                 ret.push_back(0xFF);
@@ -672,7 +704,7 @@ struct tag_cn : tag_info {
         return ret;
     };
 
-    bool validate(const std::vector<uint8_t>& v) const override {
+    bool validate(const secure_vector& v) const override {
         if (v.size() < minlen || v.size() > maxlen) {
             return false;
         };
@@ -696,29 +728,29 @@ struct tag_bit_field {
     const char* desc;
 };
 
-void v_set_bit(std::vector<uint8_t>& value, const tag_bit_field& pos) {
+void v_set_bit(secure_vector& value, const tag_bit_field& pos) {
     value[pos.byte - 1] |= (0x01 << (pos.bit - 1));
 };
 
-void v_clear_bit(std::vector<uint8_t>& value, const tag_bit_field& pos) {
+void v_clear_bit(secure_vector& value, const tag_bit_field& pos) {
     value[pos.byte - 1] &= ~(0x01 << (pos.bit - 1));
 };
 
-int v_get_bit(std::vector<uint8_t> const& value, const tag_bit_field& pos) {
+int v_get_bit(secure_vector const& value, const tag_bit_field& pos) {
     return value[pos.byte - 1] & (0x01 << (pos.bit - 1));
 };
 
 #define DECL_TAG_BIT(name, p1, p2) \
     static constexpr tag_bit_field name = {p1, p2, #name}
 
-static void dump(const std::vector<uint8_t>& v, const tag_bit_field* field) {
+static void dump(const secure_vector& v, const tag_bit_field* field) {
     if ((v[field->byte - 1] & (0x01 << (field->bit - 1))) != 0) {
         pr_debug("<", field->desc, "> ");
     }
 };
 
 template <typename TAG>
-static void dump(TAG& tag, const std::vector<uint8_t>& v) {
+static void dump(TAG& tag, const secure_vector& v) {
     for (auto p : tag.all_bits) {
         dump(v, p);
     }
@@ -1025,9 +1057,9 @@ struct outcome {
     bool ui_on_restart;
     ui_req_data ui_restart_data;
     bool data_record_present;
-    std::vector<uint8_t> data_record;
+    secure_vector data_record;
     bool discretionary_data_present;
-    std::vector<uint8_t> discretionary_data;
+    secure_vector discretionary_data;
     INTERFACE_TYPE alt_interface;
     bool receipt;
     int field_off_request;
@@ -1262,20 +1294,20 @@ static constexpr char THIRD_PARTY_DATA_9F6E_desc[] = "Third Party Data";
 struct TAG_THIRD_PARTY_DATA_9F6E : public tag_b {
     constexpr TAG_THIRD_PARTY_DATA_9F6E() : tag_b(0x9F6E, THIRD_PARTY_DATA_9F6E_desc, 5, 32,
                                                   PERM_K | PERM_RA){};
-    static inline std::vector<uint8_t> get_counry_code(const std::vector<uint8_t>& v) {
-        return std::vector<uint8_t>{v.begin(), v.begin() + 2};
+    static inline secure_vector get_counry_code(const secure_vector& v) {
+        return secure_vector{v.begin(), v.begin() + 2};
     }
 
-    static inline std::vector<uint8_t> get_unique_identifier(const std::vector<uint8_t>& v) {
-        return std::vector<uint8_t>{v.begin() + 2, v.begin() + 4};
+    static inline secure_vector get_unique_identifier(const secure_vector& v) {
+        return secure_vector{v.begin() + 2, v.begin() + 4};
     }
 
-    static inline bool has_device_type(const std::vector<uint8_t>& v) {
+    static inline bool has_device_type(const secure_vector& v) {
         return (v[2] & 0x80) == 0x00;
     }
 
-    static inline std::vector<uint8_t> get_device_type(const std::vector<uint8_t>& v) {
-        return std::vector<uint8_t>{v.begin() + 4, v.begin() + 6};
+    static inline secure_vector get_device_type(const secure_vector& v) {
+        return secure_vector{v.begin() + 4, v.begin() + 6};
     }
 };
 static constexpr TAG_THIRD_PARTY_DATA_9F6E THIRD_PARTY_DATA_9F6E{};
@@ -1296,15 +1328,15 @@ static constexpr TAG_DS_SUMMARY_STATUS_DF810B DS_SUMMARY_STATUS_DF810B{};
 static constexpr char CVM_RESULT_9F34_desc[] = "CVM Results";
 struct TAG_CVM_RESULT_9F34 : public tag_b {
     constexpr TAG_CVM_RESULT_9F34() : tag_b(0x9F34, CVM_RESULT_9F34_desc, 3, 3){};
-    static inline void set_performed(std::vector<uint8_t>& v, CVM_CODE code) {
+    static inline void set_performed(secure_vector& v, CVM_CODE code) {
         v[0] = static_cast<uint8_t>(code);
     }
 
-    static inline void set_condition(std::vector<uint8_t>& v, CVM_CONDITION code) {
+    static inline void set_condition(secure_vector& v, CVM_CONDITION code) {
         v[1] = static_cast<uint8_t>(code);
     };
 
-    static inline void set_result(std::vector<uint8_t>& v, CVM_RESULT code) {
+    static inline void set_result(secure_vector& v, CVM_RESULT code) {
         v[2] = static_cast<uint8_t>(code);
     };
 };
@@ -1333,7 +1365,7 @@ static constexpr char DS_AC_TYPE_DF8108_desc[] = "DS AC Type";
 struct TAG_DS_AC_TYPE_DF8108 : public tag_b {
     constexpr TAG_DS_AC_TYPE_DF8108() : tag_b(0xDF8108, DS_AC_TYPE_DF8108_desc, 1, 1,
                                               PERM_K | PERM_ACT | PERM_DET){};
-    static AC_TYPE custom_value(const std::vector<uint8_t>& v) {
+    static AC_TYPE custom_value(const secure_vector& v) {
         return static_cast<AC_TYPE>(v[0] >> 6);
     };
 };
@@ -1343,11 +1375,11 @@ static constexpr char REFERENCE_CONTROL_PARAMETER_DF8114_desc[] = "Reference Con
 struct TAG_REFERENCE_CONTROL_PARAMETER_DF8114 : public tag_b {
     constexpr TAG_REFERENCE_CONTROL_PARAMETER_DF8114() : tag_b(0xDF8114, REFERENCE_CONTROL_PARAMETER_DF8114_desc, 1, 1){};
     DECL_TAG_BIT(cda_signature_requested, 1, 5);
-    static inline void set_ac_type(std::vector<uint8_t>& v, AC_TYPE ac_type) {
+    static inline void set_ac_type(secure_vector& v, AC_TYPE ac_type) {
         v[0] |= (static_cast<uint8_t>(ac_type) << 6);
     };
 
-    static inline AC_TYPE get_ac_type(const std::vector<uint8_t>& v) {
+    static inline AC_TYPE get_ac_type(const secure_vector& v) {
         return static_cast<AC_TYPE>(v[0] >> 6);
     };
 
@@ -1384,7 +1416,7 @@ struct TAG_IDS_STATUS_DF8128 : public tag_b {
         &read,
         &write};
 
-    static inline void clear_read(std::vector<uint8_t>& v) {
+    static inline void clear_read(secure_vector& v) {
         v[0] &= ~0x80;
     };
 };
@@ -1393,32 +1425,32 @@ static constexpr TAG_IDS_STATUS_DF8128 IDS_STATUS_DF8128{};
 static constexpr char USER_INTERFACE_REQUEST_DATA_DF8116_desc[] = "User Interface Request Data";
 struct TAG_USER_INTERFACE_REQUEST_DATA_DF8116 : public tag_b {
     constexpr TAG_USER_INTERFACE_REQUEST_DATA_DF8116() : tag_b(0xDF8116, USER_INTERFACE_REQUEST_DATA_DF8116_desc, 22, 22){};
-    static std::vector<uint8_t> get_default() {
-        std::vector<uint8_t> v(22);
+    static secure_vector get_default() {
+        secure_vector v(22);
         set_message_id(v, ui_message_id::NA);
         set_status(v, ui_status_id::NA);
         set_value_qualifier(v, ui_value_id::NONE);
         return v;
     };
 
-    static inline void set_message_id(std::vector<uint8_t>& v, ui_message_id id) {
+    static inline void set_message_id(secure_vector& v, ui_message_id id) {
         v[0] = static_cast<uint8_t>(id);
     };
 
-    static inline ui_message_id get_message_id(const std::vector<uint8_t>& v) {
+    static inline ui_message_id get_message_id(const secure_vector& v) {
         return static_cast<ui_message_id>(v[0]);
     };
 
-    static inline void set_status(std::vector<uint8_t>& v, ui_status_id id) {
+    static inline void set_status(secure_vector& v, ui_status_id id) {
         v[1] = static_cast<uint8_t>(id);
     };
 
-    static inline ui_status_id get_status(const std::vector<uint8_t>& v) {
+    static inline ui_status_id get_status(const secure_vector& v) {
         return static_cast<ui_status_id>(v[1]);
     };
 
     // n6
-    static inline void set_hold_time(std::vector<uint8_t>& v, const std::vector<uint8_t>& time){
+    static inline void set_hold_time(secure_vector& v, const secure_vector& time){
         if (time.size() != 3) {
             pr_error("bad hold time\n");
             throw std::bad_exception();
@@ -1426,11 +1458,11 @@ struct TAG_USER_INTERFACE_REQUEST_DATA_DF8116 : public tag_b {
         std::copy(time.begin(), time.end(), v.begin() + 2);
     };
 
-    static inline std::vector<uint8_t> get_hold_time(const std::vector<uint8_t>& v) {
-        return std::vector<uint8_t>(v.begin() + 2, v.begin() + 5);
+    static inline secure_vector get_hold_time(const secure_vector& v) {
+        return secure_vector(v.begin() + 2, v.begin() + 5);
     };
 
-    static inline void set_lang_pref(std::vector<uint8_t>& v, const std::vector<uint8_t>& pref) {
+    static inline void set_lang_pref(secure_vector& v, const secure_vector& pref) {
         if (pref.size() > 8) {
             pr_error("bad lang pref\n");
             throw std::bad_exception();
@@ -1439,20 +1471,20 @@ struct TAG_USER_INTERFACE_REQUEST_DATA_DF8116 : public tag_b {
         std::copy(pref.begin(), pref.end(), v.begin() + 5);
     };
 
-    static inline std::vector<uint8_t> get_lang_pref(const std::vector<uint8_t>& v) {
-        return std::vector<uint8_t>(v.begin() + 5, v.begin() + 13);
+    static inline secure_vector get_lang_pref(const secure_vector& v) {
+        return secure_vector(v.begin() + 5, v.begin() + 13);
     };
 
-    static inline void set_value_qualifier(std::vector<uint8_t>& v, ui_value_id qualifier) {
+    static inline void set_value_qualifier(secure_vector& v, ui_value_id qualifier) {
         v[13] = static_cast<uint8_t>(qualifier);
     };
 
-    static inline ui_value_id get_value_qualifier(const std::vector<uint8_t>& v) {
+    static inline ui_value_id get_value_qualifier(const secure_vector& v) {
         return static_cast<ui_value_id>(v[13]);
     };
 
     // n12
-    static inline void set_value(std::vector<uint8_t>& v, const std::vector<uint8_t>& value) {
+    static inline void set_value(secure_vector& v, const secure_vector& value) {
         if (value.size() != 6) {
             pr_error("bad value\n");
             throw std::bad_exception();
@@ -1460,20 +1492,20 @@ struct TAG_USER_INTERFACE_REQUEST_DATA_DF8116 : public tag_b {
         std::copy(value.begin(), value.end(), v.begin() + 14);
     };
 
-    static inline std::vector<uint8_t> get_value(const std::vector<uint8_t>& v) {
-        return std::vector<uint8_t>{v.begin() + 14, v.begin() + 20};
+    static inline secure_vector get_value(const secure_vector& v) {
+        return secure_vector{v.begin() + 14, v.begin() + 20};
     };
 
     // n3
-    static inline void set_currency_code(std::vector<uint8_t>& v, const std::vector<uint8_t>& code) {
+    static inline void set_currency_code(secure_vector& v, const secure_vector& code) {
         std::copy(code.begin(), code.end(), v.begin() + 20);
     };
 
-    static inline std::vector<uint8_t> get_currency_code(const std::vector<uint8_t>& v) {
-        return std::vector<uint8_t>{v.begin() + 20, v.end()};
+    static inline secure_vector get_currency_code(const secure_vector& v) {
+        return secure_vector{v.begin() + 20, v.end()};
     };
 
-    static ui_req_data to_ui_req_data(const std::vector<uint8_t>& v) {
+    static ui_req_data to_ui_req_data(const secure_vector& v) {
         ui_req_data ui;
         ui.ui_id = get_message_id(v);
         ui.status = get_status(v);
@@ -1487,7 +1519,7 @@ struct TAG_USER_INTERFACE_REQUEST_DATA_DF8116 : public tag_b {
         return ui;
     };
 
-    static void print(const std::vector<uint8_t>& v, const std::string prefix = std::string{}) {
+    static void print(const secure_vector& v, const std::string prefix = std::string{}) {
         pr_debug(prefix, "MESSAGE  [", emv::to_string(get_message_id(v)), "]\n");
         pr_debug(prefix, "STATUS [", emv::to_string(get_status(v)), "]\n");
         pr_debug(prefix, "HOLD TIME ", get_hold_time(v), "\n");
@@ -1502,30 +1534,30 @@ static constexpr TAG_USER_INTERFACE_REQUEST_DATA_DF8116 USER_INTERFACE_REQUEST_D
 static constexpr char ERROR_INDICATION_DF8115_desc[] = "Error Indication";
 struct TAG_ERROR_INDICATION_DF8115 : public tag_b {
     constexpr TAG_ERROR_INDICATION_DF8115() : tag_b(0xDF8115, ERROR_INDICATION_DF8115_desc, 6, 6){};
-    static std::vector<uint8_t> get_default() {
-        std::vector<uint8_t> v(6);
+    static secure_vector get_default() {
+        secure_vector v(6);
         set_msg_on_error(v, ui_message_id::NA);
         return v;
     };
 
-    static inline void set_l1_error(std::vector<uint8_t>& v, L1_ERROR error) {
+    static inline void set_l1_error(secure_vector& v, L1_ERROR error) {
         v[0] = static_cast<uint8_t>(error);
     };
 
-    static inline void set_l2_error(std::vector<uint8_t>& v, L2_ERROR error) {
+    static inline void set_l2_error(secure_vector& v, L2_ERROR error) {
         v[1] = static_cast<uint8_t>(error);
     };
 
-    static inline void set_l3_error(std::vector<uint8_t>& v, L3_ERROR error) {
+    static inline void set_l3_error(secure_vector& v, L3_ERROR error) {
         v[2] = static_cast<uint8_t>(error);
     };
 
-    static inline void set_sw12(std::vector<uint8_t>& v, uint8_t sw1, uint8_t sw2) {
+    static inline void set_sw12(secure_vector& v, uint8_t sw1, uint8_t sw2) {
         v[3] = sw1;
         v[4] = sw2;
     };
 
-    static inline void set_msg_on_error(std::vector<uint8_t>& v, ui_message_id id) {
+    static inline void set_msg_on_error(secure_vector& v, ui_message_id id) {
         v[5] = static_cast<uint8_t>(id);
     };
 };
@@ -1535,8 +1567,8 @@ static constexpr char OUTCOME_PARAMETER_SET_DF8129_desc[] = "Outcome Parameter s
 struct TAG_OUTCOME_PARAMETER_SET_DF8129 : public tag_b {
     constexpr TAG_OUTCOME_PARAMETER_SET_DF8129() : tag_b(0xDF8129, OUTCOME_PARAMETER_SET_DF8129_desc, 8, 8){};
 
-    static std::vector<uint8_t> get_default() {
-        std::vector<uint8_t> v(8);
+    static secure_vector get_default() {
+        secure_vector v(8);
         v[0] = 0xF0;
         v[1] = 0xF0;
         v[2] = 0xF0;
@@ -1546,30 +1578,30 @@ struct TAG_OUTCOME_PARAMETER_SET_DF8129 : public tag_b {
         return v;
     };
 
-    static inline void set_status(std::vector<uint8_t>& v, OUTCOME_TYPE status) {
+    static inline void set_status(secure_vector& v, OUTCOME_TYPE status) {
         v[0] &= 0x0F;
         v[0] |= static_cast<uint8_t>(status) << 4;
     };
 
-    static inline OUTCOME_TYPE get_status(const std::vector<uint8_t>& v) {
+    static inline OUTCOME_TYPE get_status(const secure_vector& v) {
         return static_cast<OUTCOME_TYPE>(v[0] >> 4);
     };
 
-    static inline void set_start(std::vector<uint8_t>& v, RESTART_POINT start) {
+    static inline void set_start(secure_vector& v, RESTART_POINT start) {
         v[1] &= 0x0F;
         v[1] |= static_cast<uint8_t>(start) << 4;
     };
 
-    static inline RESTART_POINT get_start(const std::vector<uint8_t>& v) {
+    static inline RESTART_POINT get_start(const secure_vector& v) {
         return static_cast<RESTART_POINT>(v[1] >> 4);
     };
 
-    static inline void set_cvm(std::vector<uint8_t>& v, OUTCOME_CVM cvm) {
+    static inline void set_cvm(secure_vector& v, OUTCOME_CVM cvm) {
         v[3] &= 0x0F;
         v[3] |= static_cast<uint8_t>(cvm) << 4;
     };
 
-    static inline OUTCOME_CVM get_cvm(const std::vector<uint8_t>& v) {
+    static inline OUTCOME_CVM get_cvm(const secure_vector& v) {
         return static_cast<OUTCOME_CVM>(v[3] >> 4);
     };
 
@@ -1586,23 +1618,23 @@ struct TAG_OUTCOME_PARAMETER_SET_DF8129 : public tag_b {
         &discretionary_data_present,
         &receipt_required};
 
-    static inline void set_field_off(std::vector<uint8_t>& v, uint8_t time) {
+    static inline void set_field_off(secure_vector& v, uint8_t time) {
         v[6] = time;
     };
 
-    static inline uint8_t get_field_off(const std::vector<uint8_t>& v) {
+    static inline uint8_t get_field_off(const secure_vector& v) {
         return v[6];
     };
 
-    static inline void set_removal_timerout(std::vector<uint8_t>& v, uint8_t time) {
+    static inline void set_removal_timerout(secure_vector& v, uint8_t time) {
         v[7] = time;
     };
 
-    static inline uint8_t get_removal_timerout(const std::vector<uint8_t>& v) {
+    static inline uint8_t get_removal_timerout(const secure_vector& v) {
         return v[7];
     };
 
-    static void print(const std::vector<uint8_t>& v,
+    static void print(const secure_vector& v,
                       const std::string prefix = std::string{}) {
         pr_debug(prefix, emv::to_string(get_status(v)), "\n");
         pr_debug(prefix, "START [", emv::to_string(get_start(v)), "]\n");
@@ -1684,12 +1716,12 @@ struct TAG_TVR_95 : public tag_b {
         RFU = 3
     };
 
-    static inline void set_rrp(std::vector<uint8_t>& v, RRP_STATUS status) {
+    static inline void set_rrp(secure_vector& v, RRP_STATUS status) {
         v[4] &= 0xFC;
         v[4] |= static_cast<uint8_t>(status);
     };
 
-    static inline RRP_STATUS get_rrp(const std::vector<uint8_t>& v) {
+    static inline RRP_STATUS get_rrp(const secure_vector& v) {
         return static_cast<RRP_STATUS>(v[4] & 0x03);
     };
 };
@@ -1775,7 +1807,7 @@ struct TAG_POS_CARDHOLDER_INTERACTION_INFO_DF4B : public tag_b {
         &ack_required,
         &od_cvm_required,
         &wallet_requires_second_tap};
-    static uint8_t get_version(const std::vector<uint8_t>& v) {
+    static uint8_t get_version(const secure_vector& v) {
         return v[0];
     };
 };
@@ -1810,7 +1842,7 @@ static constexpr TAG_KERNEL_CONFIGURATION_DF811B KERNEL_CONFIGURATION_DF811B{};
 static constexpr char MS_CVM_CAPABILITY_CVM_REQUIRED_DF811E_desc[] = "Mag-stripe CVM Capability CVM Required";
 struct TAG_MS_CVM_CAPABILITY_CVM_REQUIRED_DF811E : public tag_b {
     constexpr TAG_MS_CVM_CAPABILITY_CVM_REQUIRED_DF811E() : tag_b(0xDF811E, MS_CVM_CAPABILITY_CVM_REQUIRED_DF811E_desc, 1, 1){};
-    static OUTCOME_CVM custom_value(const std::vector<uint8_t>& v) {
+    static OUTCOME_CVM custom_value(const secure_vector& v) {
         switch (v[0] >> 4) {
         case 0:
             return OUTCOME_CVM::NO_CVM;
@@ -1829,7 +1861,7 @@ static constexpr TAG_MS_CVM_CAPABILITY_CVM_REQUIRED_DF811E MS_CVM_CAPABILITY_CVM
 static constexpr char MS_CVM_CAPABILITY_NO_CVM_REQUIRED_DF812C_desc[] = "Mag-stripe CVM Capability No CVM Required";
 struct TAG_MS_CVM_CAPABILITY_NO_CVM_REQUIRED_DF812C : public tag_b {
     constexpr TAG_MS_CVM_CAPABILITY_NO_CVM_REQUIRED_DF812C() : tag_b(0xDF812C, MS_CVM_CAPABILITY_NO_CVM_REQUIRED_DF812C_desc, 1, 1){};
-    static OUTCOME_CVM custom_value(const std::vector<uint8_t>& v) {
+    static OUTCOME_CVM custom_value(const secure_vector& v) {
         switch (v[0] >> 4) {
         case 0:
             return OUTCOME_CVM::NO_CVM;
@@ -2061,7 +2093,7 @@ static constexpr char CA_PUBLIC_KEY_INDEX_8F_desc[] = "Certificate Authority Pub
 struct TAG_CA_PUBLIC_KEY_INDEX_8F : public tag_b {
     constexpr TAG_CA_PUBLIC_KEY_INDEX_8F() : tag_b(0x8F, CA_PUBLIC_KEY_INDEX_8F_desc, 1, 1,
                                                    PERM_K | PERM_RA){};
-    static uint8_t custom_value(const std::vector<uint8_t>& value) {
+    static uint8_t custom_value(const secure_vector& value) {
         return value[0];
     };
 };
@@ -2131,15 +2163,15 @@ static constexpr char TRACK1_DATA_56_desc[] = "Track 1 Data";
 struct TAG_TRACK1_DATA_56 : public tag_ans {
     constexpr TAG_TRACK1_DATA_56() : tag_ans(0x56, TRACK1_DATA_56_desc, 0, 76, PERM_K | PERM_RA){};
     struct track_data {
-        std::vector<uint8_t> pan;
-        std::vector<uint8_t> name;
-        std::vector<uint8_t> date;
-        std::vector<uint8_t> service_code;
-        std::vector<uint8_t> discretionary_data;
+        secure_vector pan;
+        secure_vector name;
+        secure_vector date;
+        secure_vector service_code;
+        secure_vector discretionary_data;
     };
 
-    static std::vector<uint8_t> serialize(const track_data& data) {
-        std::vector<uint8_t> ret{};
+    static secure_vector serialize(const track_data& data) {
+        secure_vector ret{};
         ret.push_back(0x42);
         std::copy(data.pan.begin(), data.pan.end(), back_inserter(ret));
         ret.push_back(0x5E);
@@ -2153,7 +2185,7 @@ struct TAG_TRACK1_DATA_56 : public tag_ans {
         return ret;
     };
 
-    static bool parse(const std::vector<uint8_t>& v, struct track_data& data) {
+    static bool parse(const secure_vector& v, struct track_data& data) {
         pr_debug("deserialize TRACK1_DATA_56 : ", v, "\n");
         auto p = v.begin();
         bool ret = false;
@@ -2179,15 +2211,15 @@ struct TAG_TRACK1_DATA_56 : public tag_ans {
 
             if (p + 4 >= v.end())
                 break;
-            data.date = std::vector<uint8_t>{p, p + 4};
+            data.date = secure_vector{p, p + 4};
             p += 4;
 
             if (p + 3 > v.end())
                 break;
-            data.service_code = std::vector<uint8_t>{p, p + 3};
+            data.service_code = secure_vector{p, p + 3};
             p += 3;
 
-            data.discretionary_data = std::vector<uint8_t>{p, v.end()};
+            data.discretionary_data = secure_vector{p, v.end()};
 
             ret = true;
             break;
@@ -2196,7 +2228,7 @@ struct TAG_TRACK1_DATA_56 : public tag_ans {
         return ret;
     };
 
-    static struct track_data custom_value(const std::vector<uint8_t>& v) {
+    static struct track_data custom_value(const secure_vector& v) {
         struct track_data data {};
         if (parse(v, data)) {
             return data;
@@ -2209,13 +2241,13 @@ static constexpr TAG_TRACK1_DATA_56 TRACK1_DATA_56{};
 
 struct TRACK2_COMMON {
     struct track_data {
-        std::string pan;
-        std::string date;
-        std::string service_code;
-        std::string discretionary_data;
+        secure_string pan;
+        secure_string date;
+        secure_string service_code;
+        secure_string discretionary_data;
     };
 
-    static uint8_t __get_nibble(const std::vector<uint8_t>& v, unsigned int n) {
+    static uint8_t __get_nibble(const secure_vector& v, unsigned int n) {
         int index = n >> 1;
         if (n % 2) {
             return v[index] & 0x0F;
@@ -2224,7 +2256,7 @@ struct TRACK2_COMMON {
         return v[index] >> 4;
     };
 
-    static void __set_nibble(std::vector<uint8_t>& v, unsigned int n, uint8_t val) {
+    static void __set_nibble(secure_vector& v, unsigned int n, uint8_t val) {
         int index = n >> 1;
         if (n % 2) {
             v[index] &= 0xF0;
@@ -2235,8 +2267,8 @@ struct TRACK2_COMMON {
         };
     };
 
-    static std::vector<uint8_t> serialize(struct track_data& data) {
-        std::vector<uint8_t> v{};
+    static secure_vector serialize(struct track_data& data) {
+        secure_vector v{};
         int nibbles = data.pan.size() + 1 + 4 + 3 + data.discretionary_data.size() + 1;
         v.resize(nibbles / 2);
         int n = 0;
@@ -2265,7 +2297,7 @@ struct TRACK2_COMMON {
         return v;
     };
 
-    static bool parse(const std::vector<uint8_t>& v, struct track_data& data) {
+    static bool parse(const secure_vector& v, struct track_data& data) {
         int n;
         int nibbles = v.size() * 2;
         for (n = 0; n != nibbles; n++) {
@@ -2305,8 +2337,9 @@ struct TRACK2_COMMON {
         return true;
     };
 
-    static std::vector<uint8_t> discretionary_data_to_bytes(const std::string& dd) {
-        std::vector<uint8_t> ret{};
+    static secure_vector discretionary_data_to_bytes(const secure_string& dd)
+    {
+        secure_vector ret{};
         for (auto p = dd.begin();;) {
             uint8_t b;
             if (p == dd.end())
@@ -2338,13 +2371,15 @@ static constexpr char TRACK2_57_desc[] = "Track 2 Equivalent Data";
 struct TAG_TRACK2_57 : public tag_b, TRACK2_COMMON {
     constexpr TAG_TRACK2_57() : tag_b(0x57, TRACK2_57_desc, 0, 19, PERM_K | PERM_RA){};
 
-    static std::string get_pan(const std::vector<uint8_t>& v) {
+    static secure_string get_pan(const secure_vector& v)
+    {
         struct track_data data {};
         parse(v, data);
         return data.pan;
     };
 
-    static void set_dd(std::vector<uint8_t>& v, const std::string& dd) {
+    static void set_dd(secure_vector& v, const secure_string& dd)
+    {
         struct track_data data {};
         parse(v, data);
         data.discretionary_data = dd;
@@ -2357,7 +2392,7 @@ static constexpr char ISSUER_APPLICATION_DATA_9F10_desc[] = "Issuer Application 
 struct TAG_ISSUER_APPLICATION_DATA_9F10 : public tag_b {
     constexpr TAG_ISSUER_APPLICATION_DATA_9F10() : tag_b(0x9F10, ISSUER_APPLICATION_DATA_9F10_desc, 0, 32,
                                                          PERM_K | PERM_RA){};
-    static AC_TYPE custom_value(const std::vector<uint8_t>& v) {
+    static AC_TYPE custom_value(const secure_vector& v) {
         return narrow_cast<AC_TYPE>((v[4] >> 4) & 3);
     };
 };
@@ -2366,11 +2401,11 @@ static constexpr TAG_ISSUER_APPLICATION_DATA_9F10 ISSUER_APPLICATION_DATA_9F10{}
 static constexpr char CID_9F27_desc[] = "Cryptogram Information Data";
 struct TAG_CID_9F27 : public tag_b {
     constexpr TAG_CID_9F27() : tag_b(0x9F27, CID_9F27_desc, 1, 1, PERM_K | PERM_RA){};
-    static AC_TYPE custom_value(const std::vector<uint8_t>& value) {
+    static AC_TYPE custom_value(const secure_vector& value) {
         return narrow_cast<AC_TYPE>((value[0] >> 6) & 0x03);
     };
 
-    static void set_type(std::vector<uint8_t>& value, AC_TYPE type) {
+    static void set_type(secure_vector& value, AC_TYPE type) {
         uint8_t b = static_cast<uint8_t>(type);
         value[0] &= ~0xC0;
         value[0] |= (b << 6);
@@ -2398,7 +2433,7 @@ struct TAG_AFL_94 : public tag_var {
         return rec[3];
     };
 
-    virtual bool validate(const std::vector<uint8_t>& v) const override {
+    virtual bool validate(const secure_vector& v) const override {
         int size = v.size();
         if (size == 0 || size % 4 != 0)
             return false;
@@ -2419,7 +2454,7 @@ static constexpr TAG_AFL_94 AFL_94{};
 static constexpr char ADF_NAME_4F_desc[] = "Application Identifier (ADF Name)";
 struct TAG_ADF_NAME_4F : public tag_b {
     constexpr TAG_ADF_NAME_4F() : tag_b(0x4F, ADF_NAME_4F_desc, 5, 16){};
-    virtual bool validate(const std::vector<uint8_t>& value) const override {
+    virtual bool validate(const secure_vector& value) const override {
         if (!tag_b::validate(value))
             return false;
 
@@ -2435,7 +2470,7 @@ static constexpr char KERNEL_IDENTIFIER_9F2A_desc[] = "Kernel Identifier - Card"
 struct TAG_KERNEL_IDENTIFIER_9F2A : public tag_b {
     constexpr TAG_KERNEL_IDENTIFIER_9F2A() : tag_b(0x9F2A, KERNEL_IDENTIFIER_9F2A_desc, 1, 8){};
 
-    static bool get_kid(const std::vector<uint8_t>& value, uint32_t& kid) {
+    static bool get_kid(const secure_vector& value, uint32_t& kid) {
         auto flags = value[0] >> 6;
 
         // 3.3.2.5 Book B for Kernel ID selection
@@ -2455,7 +2490,7 @@ static constexpr TAG_KERNEL_IDENTIFIER_9F2A KERNEL_IDENTIFIER_9F2A{};
 static constexpr char APPLICATION_PRIORITY_INDICATOR_desc[] = "Application Priority Indicator";
 struct TAG_APPLICATION_PRIORITY_INDICATOR_87 : public tag_b {
     constexpr TAG_APPLICATION_PRIORITY_INDICATOR_87() : tag_b(0x87, APPLICATION_PRIORITY_INDICATOR_desc, 1, 1, PERM_K | PERM_RA){};
-    static uint8_t custom_value(const std::vector<uint8_t>& value) {
+    static uint8_t custom_value(const secure_vector& value) {
         return value[0] & 0x0F;
     };
 };
@@ -2475,7 +2510,7 @@ struct TAG_TRANSACTION_TYPE_9C : public tag_n {
         BALANCE_INQUIRY = 31
     };
 
-    static ENUMS custom_value(const std::vector<uint8_t>& v) {
+    static ENUMS custom_value(const secure_vector& v) {
         auto nv = to_numeric_value(v);
         return narrow_cast<ENUMS>(nv);
     };
@@ -2487,12 +2522,12 @@ using TRANSACTION_TYPE = TAG_TRANSACTION_TYPE_9C::ENUMS;
 static constexpr char TERMINAL_TYPE_9F35_desc[] = "Terminal Type";
 struct TAG_TERMINAL_TYPE_9F35 : public tag_n {
     constexpr TAG_TERMINAL_TYPE_9F35() : tag_n(0x9F35, TERMINAL_TYPE_9F35_desc, 2, 2, PERM_K | PERM_ACT | PERM_DET){};
-    static inline bool is_attended(const std::vector<uint8_t>& v) {
+    static inline bool is_attended(const secure_vector& v) {
         auto p = v[0] & 0x0F;
         return (p < 4); // 1, 2, 3 for attended
     };
 
-    static inline bool is_unattended(const std::vector<uint8_t>& v) {
+    static inline bool is_unattended(const secure_vector& v) {
         return !is_attended(v);
     };
 };
@@ -2515,15 +2550,15 @@ DECL_TAG_B(PUNATC_TRACK2_9F66, "PUNATC(Track2)", 0x9F66, 2, 2, PERM_K | PERM_RA)
 static constexpr char APPLICATION_CAPABILITIES_INFO_9F5D_desc[] = "Application Capabilities Information";
 struct TAG_APPLICATION_CAPABILITIES_INFO_9F5D : public tag_b {
     constexpr TAG_APPLICATION_CAPABILITIES_INFO_9F5D() : tag_b(0x9F5D, APPLICATION_CAPABILITIES_INFO_9F5D_desc, 3, 3, PERM_K | PERM_RA){};
-    static inline int get_aci_version(const std::vector<uint8_t>& v) {
+    static inline int get_aci_version(const secure_vector& v) {
         return v[0] >> 4;
     };
 
-    static inline int get_ds_version(const std::vector<uint8_t>& v) {
+    static inline int get_ds_version(const secure_vector& v) {
         return v[0] & 0x0F;
     };
 
-    static inline uint8_t get_sdc_scheme_indicator(const std::vector<uint8_t>& v) {
+    static inline uint8_t get_sdc_scheme_indicator(const secure_vector& v) {
         return v[2];
     };
 
@@ -2830,16 +2865,16 @@ DECL_TAG_B(ISSUER_SCRIPT_TEMPLATE_72, "Issuer Script Template", 0x72, 0, 253);
 static constexpr char CARD_AUTH_RELATED_DATA_9F69_desc[] = "Card Authentication Related Data";
 struct TAG_CARD_AUTH_RELATED_DATA_9F69 : public tag_b {
     constexpr TAG_CARD_AUTH_RELATED_DATA_9F69() : tag_b(0x9F69, CARD_AUTH_RELATED_DATA_9F69_desc, 5, 16){};
-    static inline uint8_t fdda_version(const std::vector<uint8_t>& v) {
+    static inline uint8_t fdda_version(const secure_vector& v) {
         return v[0];
     };
 
-    static inline std::vector<uint8_t> un(const std::vector<uint8_t>& v) {
-        return std::vector<uint8_t>{v.begin() + 1, v.begin() + 5};
+    static inline secure_vector un(const secure_vector& v) {
+        return secure_vector{v.begin() + 1, v.begin() + 5};
     };
 
-    static inline std::vector<uint8_t> ctq(const std::vector<uint8_t>& v) {
-        return std::vector<uint8_t>{v.begin() + 5, v.begin() + 7};
+    static inline secure_vector ctq(const secure_vector& v) {
+        return secure_vector{v.begin() + 5, v.begin() + 7};
     };
 };
 static constexpr TAG_CARD_AUTH_RELATED_DATA_9F69 CARD_AUTH_RELATED_DATA_9F69{};
@@ -2990,7 +3025,7 @@ bool tag_is_known(uint32_t tag) {
     return find_tag_info(tag) != nullptr;
 };
 
-bool tlv_validate(uint32_t tag, std::vector<uint8_t> const& value) {
+bool tlv_validate(uint32_t tag, secure_vector const& value) {
     auto p = find_tag_info(tag);
     if (p != nullptr) {
         return p->validate(value);
@@ -3000,7 +3035,7 @@ bool tlv_validate(uint32_t tag, std::vector<uint8_t> const& value) {
 }
 
 #ifdef HAVE_LOG
-void tlv_print(uint32_t tag, std::vector<uint8_t> const& value,
+void tlv_print(uint32_t tag, secure_vector const& value,
                const std::string prefix = std::string{}) {
     pr_debug(prefix, "<", to_hex(tag), "> : ");
     auto info = find_tag_info(tag);
@@ -3014,8 +3049,8 @@ void tlv_print(uint32_t tag, std::vector<uint8_t> const& value,
 #define tlv_print(...)
 #endif
 
-bool tag_list_deserialize(std::vector<uint8_t>::const_iterator begin,
-                          std::vector<uint8_t>::const_iterator end,
+bool tag_list_deserialize(secure_vector::const_iterator begin,
+                          secure_vector::const_iterator end,
                           std::set<uint32_t>& tags) {
     uint32_t tag = 0;
     uint8_t tagSize = 0;
@@ -3035,7 +3070,7 @@ bool tag_list_deserialize(std::vector<uint8_t>::const_iterator begin,
     return true;
 };
 
-inline bool tag_list_deserialize(std::vector<uint8_t> const& list, std::set<uint32_t>& tags) {
+inline bool tag_list_deserialize(secure_vector const& list, std::set<uint32_t>& tags) {
     return tag_list_deserialize(list.begin(), list.end(), tags);
 };
 
@@ -3092,8 +3127,8 @@ struct COMMANDS {
 class apdu_builder {
 public:
     struct build_state {
-        std::vector<uint8_t> to_bytes() {
-            std::vector<uint8_t> apdu{};
+        secure_vector to_bytes() {
+            secure_vector apdu{};
             apdu.push_back(_cla);
             apdu.push_back(_ins);
             apdu.push_back(_p1);
@@ -3127,12 +3162,12 @@ public:
             return *this;
         }
 
-        build_state& data(const std::vector<uint8_t>& val) {
+        build_state& data(const secure_vector& val) {
             _data = val;
             return *this;
         }
 
-        build_state& data(std::vector<uint8_t>&& val) {
+        build_state& data(secure_vector&& val) {
             _data = val;
             return *this;
         }
@@ -3143,7 +3178,7 @@ public:
         uint8_t _p2;
         uint8_t _le;
         bool have_le;
-        std::vector<uint8_t> _data;
+        secure_vector _data;
     };
 
     static build_state build(const COMMAND& cmd) {
@@ -3154,7 +3189,7 @@ public:
         state._p2 = cmd.p2;
         state._le = 0;
         state.have_le = false;
-        state._data = std::vector<uint8_t>{};
+        state._data = secure_vector{};
         return state;
     };
 };
@@ -3191,14 +3226,14 @@ extern timer_factory* emv_timer_factory;
 class message {
 public:
     static constexpr int MAX_MESSAGE_LENGTH = 512;
-    message(const std::vector<uint8_t> msg) : data(msg){};
-    message(std::vector<uint8_t>&& msg) : data(std::move(msg)){};
+    message(const secure_vector msg) : data(msg){};
+    message(secure_vector&& msg) : data(std::move(msg)){};
     message(message const& msg) = default;
     message(message&& msg) = default;
     message& operator=(message const& msg) = default;
     message& operator=(message&& msg) = default;
 
-    message(MESSAGE_ID id, EMV_MODULE src, EMV_MODULE dest, const std::vector<uint8_t> body = std::vector<uint8_t>()) {
+    message(MESSAGE_ID id, EMV_MODULE src, EMV_MODULE dest, const secure_vector body = secure_vector()) {
         data.resize(3 + body.size());
         data[0] = static_cast<uint8_t>(id);
         data[1] = static_cast<uint8_t>(src);
@@ -3208,20 +3243,20 @@ public:
     EMV_MODULE get_source() const { return static_cast<EMV_MODULE>(data[1]); };
     EMV_MODULE get_destination() const { return static_cast<EMV_MODULE>(data[2]); };
     MESSAGE_ID get_message_id() const { return static_cast<MESSAGE_ID>(data[0]); };
-    std::vector<uint8_t> get_body() const { return std::vector<uint8_t>(data.begin() + 3, data.end()); };
-    std::vector<uint8_t>::const_iterator body_begin() const { return data.cbegin() + 3; };
-    std::vector<uint8_t>::const_iterator body_end() const { return data.cend(); };
-    const std::vector<uint8_t>& get_raw_data() const { return data; };
+    secure_vector get_body() const { return secure_vector(data.begin() + 3, data.end()); };
+    secure_vector::const_iterator body_begin() const { return data.cbegin() + 3; };
+    secure_vector::const_iterator body_end() const { return data.cend(); };
+    const secure_vector& get_raw_data() const { return data; };
     void send() {
         emv_message_router->post(std::move(*this));
     }
 
 private:
-    std::vector<uint8_t> data;
+    secure_vector data;
 };
 
 void send_ui_event(const struct ui_req_data& ui) {
-    std::vector<uint8_t> data;
+    secure_vector data;
     data.push_back(static_cast<uint8_t>(ui.ui_id));
     data.push_back(static_cast<uint8_t>(ui.status));
     // TODO to send value stuff
@@ -3309,14 +3344,14 @@ private:
     std::vector<emv_module*> consumers;
 };
 
-using tlv_obj = std::pair<uint32_t, std::vector<uint8_t>>;
+using tlv_obj = std::pair<uint32_t, secure_vector>;
 
 class tlv_obj_list {
 public:
-    tlv_obj_list(std::vector<uint8_t> const& v) : _list(v){};
-    tlv_obj_list() : _list(std::vector<uint8_t>{}){};
+    tlv_obj_list(secure_vector const& v) : _list(v){};
+    tlv_obj_list() : _list(secure_vector{}){};
 
-    inline void append(std::vector<uint8_t> const& data) {
+    inline void append(secure_vector const& data) {
         std::copy(data.begin(), data.end(), back_inserter(_list));
     };
 
@@ -3353,9 +3388,9 @@ public:
                 throw std::bad_exception();
             }
 
-            std::vector<uint8_t> v{begin, begin + length};
+            secure_vector v{begin, begin + length};
             tlv_obj obj{tag, std::move(v)};
-            _list = std::vector<uint8_t>{begin + length, end};
+            _list = secure_vector{begin + length, end};
             return obj;
         }
 
@@ -3363,10 +3398,10 @@ public:
     };
 
 private:
-    std::vector<uint8_t> _list;
+    secure_vector _list;
 };
 
-using tlv_maps = std::map<uint32_t, std::vector<uint8_t>>;
+using tlv_maps = std::map<uint32_t, secure_vector>;
 
 class tlv_db {
 public:
@@ -3378,11 +3413,11 @@ public:
         return *this;
     };
 
-    bool parse(const std::vector<uint8_t>& tlv_list) {
+    bool parse(const secure_vector& tlv_list) {
         auto p = [&](uint32_t tag, auto begin, auto end, bool constructed) mutable {
             if (constructed)
                 return true;
-            std::vector<uint8_t> value(begin, end);
+            secure_vector value(begin, end);
             tlv_print(tag, value);
             if (!tlv_validate(tag, value)) {
                 logger.error("tag validate failed\n");
@@ -3484,19 +3519,19 @@ public:
                 throw std::bad_exception();
             }
 
-            std::vector<uint8_t> v{begin, begin + length};
+            secure_vector v{begin, begin + length};
             tlv_obj obj{tag, std::move(v)};
-            list_data = std::vector<uint8_t>{begin + length, end};
+            list_data = secure_vector{begin + length, end};
             return obj;
         }
 
         return tlv_obj{};
     };
 
-    std::vector<uint8_t> const& operator[](const tag_info& tag) const { return get(tag); };
-    std::vector<uint8_t> const& operator[](uint32_t tag) const { return get(tag); };
-    std::vector<uint8_t>& operator[](const tag_info& tag) { return get(tag); };
-    std::vector<uint8_t>& operator[](uint32_t tag) { return get(tag); };
+    secure_vector const& operator[](const tag_info& tag) const { return get(tag); };
+    secure_vector const& operator[](uint32_t tag) const { return get(tag); };
+    secure_vector& operator[](const tag_info& tag) { return get(tag); };
+    secure_vector& operator[](uint32_t tag) { return get(tag); };
 
     void set_bit(tag_info const& tag, const tag_bit_field& pos) {
         v_set_bit(get(tag), pos);
@@ -3515,16 +3550,16 @@ public:
         return tag_n::to_numeric_value(get(tag));
     };
 
-    std::vector<uint8_t> to_tlv(uint32_t tag) const {
+    secure_vector to_tlv(uint32_t tag) const {
         return make_tlv(tag, get(tag));
     };
 
-    inline std::vector<uint8_t> to_tlv(tag_info const& tag) const {
+    inline secure_vector to_tlv(tag_info const& tag) const {
         return to_tlv(tag.id);
     };
 
     void initialize(const tag_info& tag) {
-        tlv_obj obj{tag.id, std::vector<uint8_t>(tag.minlen)};
+        tlv_obj obj{tag.id, secure_vector(tag.minlen)};
         update(obj);
     };
 
@@ -3553,13 +3588,14 @@ public:
 
     // if TAG define a custom_value method, return it for operator()
     template <typename TAG>
-    auto operator()(TAG& tag) const -> decltype(tag.custom_value(std::vector<uint8_t>{})) {
+    auto operator()(TAG& tag) const -> decltype(tag.custom_value(secure_vector{})) {
         return tag.custom_value(get(tag));
     };
 
     // otherwise return to_string
     template <typename TAG, typename... Args>
-    std::string operator()(TAG tag, Args&&... args) const {
+    secure_string operator()(TAG tag, Args&&... args) const
+    {
         return tag.to_string(get(tag));
     };
 
@@ -3582,8 +3618,8 @@ public:
         maps.swap(db.maps);
     };
 
-    std::vector<uint8_t> serialize() const {
-        std::vector<uint8_t> output{};
+    secure_vector serialize() const {
+        secure_vector output{};
         for (auto& tlv : maps) {
             auto data = make_tlv(tlv.first, tlv.second);
             std::copy(data.begin(), data.end(), back_inserter(output));
@@ -3592,7 +3628,7 @@ public:
     };
 
 private:
-    std::vector<uint8_t>& get(uint32_t tag) {
+    secure_vector& get(uint32_t tag) {
         auto p = maps.find(tag);
         if (p == maps.end()) {
             pr_debug("get a mutable tag ", to_hex(tag), " that does not exist\n");
@@ -3602,11 +3638,11 @@ private:
         return p->second;
     };
 
-    inline std::vector<uint8_t>& get(const tag_info& tag) {
+    inline secure_vector& get(const tag_info& tag) {
         return get(tag.id);
     };
 
-    std::vector<uint8_t> const& get(uint32_t tag) const {
+    secure_vector const& get(uint32_t tag) const {
         auto p = maps.find(tag);
         if (p == maps.end()) {
             pr_debug("get a  tag ", to_hex(tag), " that does not exist\n");
@@ -3616,7 +3652,7 @@ private:
         return p->second;
     };
 
-    std::vector<uint8_t> const& get(const tag_info& tag) const { return get(tag.id); };
+    secure_vector const& get(const tag_info& tag) const { return get(tag.id); };
 
     tlv_maps maps;
 };
@@ -3630,7 +3666,7 @@ public:
         auto p = [&](uint32_t tag, auto begin, auto end, bool constructed) mutable {
             if (constructed)
                 return true;
-            std::vector<uint8_t> value(begin, end);
+            secure_vector value(begin, end);
             tlv_obj obj(tag, std::move(value));
             insert(std::move(obj));
             return true;
@@ -3643,9 +3679,9 @@ class torn_records {
 public:
     torn_records(){};
 
-    torn_records(const std::vector<uint8_t>& history){};
-    std::vector<uint8_t> serialize() const {
-        std::vector<uint8_t> archive{};
+    torn_records(const secure_vector& history){};
+    secure_vector serialize() const {
+        secure_vector archive{};
         for (auto p = transactions.begin(); p != transactions.end(); ++p) {
             auto record = (*p).serialize();
             auto tlv = make_tlv(TORN_RECORD_FF8101.id, record);
@@ -3655,7 +3691,7 @@ public:
         return archive;
     };
 
-    void deserialize(const std::vector<uint8_t>& archive) {
+    void deserialize(const secure_vector& archive) {
         auto p = [&](uint32_t tag, auto begin, auto end, bool constructed) mutable {
             if (constructed && tag == TORN_RECORD_FF8101.id) {
                 torn_transaction t{begin, end};
@@ -3724,19 +3760,19 @@ private:
     std::list<torn_transaction> transactions;
 };
 
-static bool build_dol(uint32_t dol_tag, const std::vector<uint8_t>& dol, const tlv_db& db, std::vector<uint8_t>& tags, std::vector<uint8_t>& missing_tags) {
+static bool build_dol(uint32_t dol_tag, const secure_vector& dol, const tlv_db& db, secure_vector& tags, secure_vector& missing_tags) {
     pr_debug("build DOL : ", std::string(find_tag_info(dol_tag)->desc), " ", dol, "\n");
     bool success = true;
     std::vector<dol_elem> elems;
     tlv_parse_dol(dol.begin(), dol.end(), elems);
 
-    std::vector<uint8_t> ret;
+    secure_vector ret;
     for (auto p = elems.begin(); p != elems.end(); ++p) {
         auto& e = *p;
         tag_info t{e.tag, TAG_TYPE::B, nullptr, 0, 0};
         auto info = find_tag_info(e.tag);
         if (!db.has_tag(e.tag) || info == nullptr) {
-            auto v = std::vector<uint8_t>(e.length);
+            auto v = secure_vector(e.length);
             pr_debug(to_hex(e.tag), " ", info == nullptr ? std::string("Unknon") : std::string(info->desc), " default DOL ", v, "\n");
             std::copy(v.begin(), v.end(), back_inserter(ret));
         } else {
@@ -4009,13 +4045,13 @@ public:
         return *this;
     };
 
-    outcome_builder& ui(ui_value_id qualifier, const std::vector<uint8_t>& value) {
+    outcome_builder& ui(ui_value_id qualifier, const secure_vector& value) {
         TAG_USER_INTERFACE_REQUEST_DATA_DF8116::set_value_qualifier(uintf, qualifier);
         TAG_USER_INTERFACE_REQUEST_DATA_DF8116::set_value(uintf, value);
         return *this;
     };
 
-    outcome_builder& currency(const std::vector<uint8_t>& code) {
+    outcome_builder& currency(const secure_vector& code) {
         auto& v = db[USER_INTERFACE_REQUEST_DATA_DF8116];
         TAG_USER_INTERFACE_REQUEST_DATA_DF8116::set_currency_code(v, code);
         return *this;
@@ -4026,7 +4062,7 @@ public:
         return *this;
     };
 
-    outcome_builder& hold(std::vector<uint8_t> time = std::vector<uint8_t>(3)) {
+    outcome_builder& hold(secure_vector time = secure_vector(3)) {
         auto& v = db[USER_INTERFACE_REQUEST_DATA_DF8116];
         TAG_USER_INTERFACE_REQUEST_DATA_DF8116::set_hold_time(v, time);
         return *this;
@@ -4149,7 +4185,7 @@ public:
 #if 0
         OUTCOME_KERNEL_RESTART_COND kernel_restart_cond;
         INTERFACE_TYPE alt_interface;
-        std::vector<uint8_t> data = output.serialize();
+        secure_vector data = output.serialize();
 #endif
     };
 
@@ -4188,10 +4224,10 @@ public:
         }
     }
 
-    void print_tlv_list(const std::vector<uint8_t>& list, const std::string prefix = std::string{}) {
+    void print_tlv_list(const secure_vector& list, const std::string prefix = std::string{}) {
         auto parser = [&](uint32_t tag, auto begin, auto end, bool constructed) -> bool {
             (void)constructed;
-            std::vector<uint8_t> v{begin, end};
+            secure_vector v{begin, end};
             tlv_print(tag, v);
             return true;
         };
@@ -4200,12 +4236,12 @@ public:
 
 private:
     tlv_db& db;
-    std::vector<uint8_t>& outcome_data;
-    std::vector<uint8_t>& uintf;
+    secure_vector& outcome_data;
+    secure_vector& uintf;
     tlv_db output;
 };
 
-using AID = std::vector<uint8_t>;
+using AID = secure_vector;
 
 struct preprocessing_indicator {
     preprocessing_indicator() {
@@ -4221,10 +4257,10 @@ struct preprocessing_indicator {
     bool zero_amount;
     bool reader_cvm_required_limit_exceeded;
     bool reader_contactless_floor_limit_exeeded;
-    std::optional<std::vector<uint8_t>> ttq;
+    std::optional<secure_vector> ttq;
 };
 
-using AID = std::vector<uint8_t>;
+using AID = secure_vector;
 
 struct transaction_cfg {
     AID aid;
@@ -4261,12 +4297,12 @@ struct kernel_cfg {
 struct cakey {
     uint8_t hashAlgorithmIndicator;
     uint8_t publicKeyAlgorithmIndicator;
-    std::vector<uint8_t> modulus;
-    std::vector<uint8_t> exponent;
-    std::string expiryDate;
+    secure_vector modulus;
+    secure_vector exponent;
+    secure_string expiryDate;
     uint8_t index;
-    std::vector<uint8_t> checksum;
-    std::vector<uint8_t> rid;
+    secure_vector checksum;
+    secure_vector rid;
 };
 
 struct reader_cfg {
@@ -4274,7 +4310,7 @@ struct reader_cfg {
     tlv_db terminal_cfg;
     std::vector<kernel_cfg> kernel_cfgs;
     std::vector<cakey> pks;
-    std::unordered_set<std::string> exceptions;
+    std::unordered_set<secure_string> exceptions;
     void print() const {
         pr_debug("<--  config ", name, "  -->\n");
         pr_debug("<terminal>\n");
@@ -4297,7 +4333,7 @@ struct reader_cfg {
     };
 };
 
-using issuer_script = std::vector<uint8_t>;
+using issuer_script = secure_vector;
 
 struct combination {
     combination(KERNEL_ID kid, AID aid) : aid(aid), kid(kid){};
@@ -4311,8 +4347,8 @@ struct combination {
 };
 
 struct candidate {
-    std::vector<uint8_t> adf_name;
-    std::vector<uint8_t> extended_selection;
+    secure_vector adf_name;
+    secure_vector extended_selection;
     uint8_t priority;
     uint8_t order;
     const combination* combo;
@@ -4349,11 +4385,11 @@ public:
         void stop_timer() {
             tm->stop();
         };
-        virtual void handle_apdu(const std::vector<uint8_t>& apdu) {
+        virtual void handle_apdu(const secure_vector& apdu) {
             tm->stop();
         };
-        virtual void handle_det(const std::vector<uint8_t>& data){};
-        virtual void handle_l1rsp(const std::vector<uint8_t>& error){};
+        virtual void handle_det(const secure_vector& data){};
+        virtual void handle_l1rsp(const secure_vector& error){};
         virtual void timeout(){};
         virtual ~responder(){};
 
@@ -4379,7 +4415,7 @@ private:
     class default_responder : public responder {
     public:
         default_responder(modulel2* emvl2) : responder(0, emvl2){};
-        virtual void handle_apdu(const std::vector<uint8_t>& apdu) override {
+        virtual void handle_apdu(const secure_vector& apdu) override {
             pr_error("UNEXPECTED APDU RECEIVED IN DEFAULT STATE\n");
         };
         virtual void timeout() override{};
@@ -4388,12 +4424,12 @@ private:
     class select_aid_responder : public responder {
     private:
         struct response_parser {
-            bool operator()(uint32_t tag, std::vector<uint8_t>::const_iterator begin,
-                            std::vector<uint8_t>::const_iterator end, bool constructed) {
+            bool operator()(uint32_t tag, secure_vector::const_iterator begin,
+                            secure_vector::const_iterator end, bool constructed) {
                 if (constructed)
                     return true;
 
-                std::vector<uint8_t> v{begin, end};
+                secure_vector v{begin, end};
                 tlv_print(tag, v);
                 tlv_obj obj{tag, v};
                 active_kernel_tag_set = (kid == KERNEL_ID::KERNEL_2 ? &KERNEL2_NS::all_tags_set : &KERNEL3_NS::all_tags_set);
@@ -4407,7 +4443,7 @@ private:
 
     public:
         select_aid_responder(modulel2* emvl2) : responder(1000, emvl2){};
-        virtual void handle_apdu(const std::vector<uint8_t>& apdu) override {
+        virtual void handle_apdu(const secure_vector& apdu) override {
             responder::handle_apdu(apdu);
             pr_debug("handle select aid response\n");
             auto parser = response_parser{};
@@ -4440,8 +4476,8 @@ private:
             bool have_discretionary_data_BF0C;
             std::vector<tlv_db> apps;
 
-            bool operator()(uint32_t tag, std::vector<uint8_t>::const_iterator begin,
-                            std::vector<uint8_t>::const_iterator end, bool constructed) {
+            bool operator()(uint32_t tag, secure_vector::const_iterator begin,
+                            secure_vector::const_iterator end, bool constructed) {
                 if (tag == 0x6F) {
                     have_fci_template_6F = true;
                 } else if (tag == 0x84) {
@@ -4471,12 +4507,12 @@ private:
                         return false;
                     apps.resize(apps.size() + 1);
                 } else if (tag == 0x4F) {
-                    std::vector<uint8_t> adf_name{begin, end};
+                    secure_vector adf_name{begin, end};
                     pr_debug("ADF name : ", adf_name, "\n");
                     tlv_db& current = apps[apps.size() - 1];
                     current.emplace(0x4FU, std::move(adf_name));
                 } else if (tag == 0x50) {
-                    std::vector<uint8_t> label{begin, end};
+                    secure_vector label{begin, end};
                     std::string name;
                     for (auto p = begin; p != end; p++) {
                         name.push_back(*p);
@@ -4486,7 +4522,7 @@ private:
                     current.emplace(0x50U, std::move(label));
                 } else if (tag == 0x87) {
                     tlv_db& current = apps[apps.size() - 1];
-                    current.emplace(0x87U, std::vector<uint8_t>{begin, end});
+                    current.emplace(0x87U, secure_vector{begin, end});
                 }
                 return true;
             };
@@ -4494,7 +4530,7 @@ private:
 
     public:
         ppse_responder(modulel2* emvl2) : responder(1000, emvl2){};
-        virtual void handle_apdu(const std::vector<uint8_t>& apdu) override {
+        virtual void handle_apdu(const secure_vector& apdu) override {
             responder::handle_apdu(apdu);
             pr_debug("handling ppse response\n");
             if (apdu.size() < 2) {
@@ -4529,7 +4565,7 @@ public:
         });
     };
 
-    void send_apdu(const std::vector<uint8_t>& apdu) {
+    void send_apdu(const secure_vector& apdu) {
         pr_debug("send apdu : ", apdu, "\n");
         message out{MESSAGE_ID::L1_TX_DATA, EMV_MODULE::L2, EMV_MODULE::L1, apdu};
         out.send();
@@ -4682,7 +4718,7 @@ public:
         case OUTCOME_TYPE::APPROVED:
         case OUTCOME_TYPE::ONLINE_REQUEST: {
             whence = o.start;
-            std::vector<uint8_t> data{static_cast<uint8_t>(o.cvm)};
+            secure_vector data{static_cast<uint8_t>(o.cvm)};
             std::copy(o.data_record.begin(), o.data_record.end(), back_inserter(data));
             if (o.discretionary_data_present) {
                 std::copy(o.discretionary_data.cbegin(), o.discretionary_data.cend(),
@@ -4719,7 +4755,7 @@ public:
         }
     };
 
-    const cakey* find_ca_key(const std::vector<uint8_t>& rid, uint8_t index) const {
+    const cakey* find_ca_key(const secure_vector& rid, uint8_t index) const {
         pr_debug("look for ca key, rid ", rid, " index ", to_hex((uint32_t)index), "\n");
         for (auto& p : l2_cfgs.pks) {
             if (p.index == index && p.rid == rid) {
@@ -4731,13 +4767,14 @@ public:
         return nullptr;
     };
 
-    bool found_on_exceptions(const std::string& pan) const {
+    bool found_on_exceptions(const secure_string& pan) const
+    {
         return (l2_cfgs.exceptions.find(pan) != l2_cfgs.exceptions.end());
     };
 
     bool verify_sda(tlv_db& db, const cakey* cak,
-                    const std::vector<uint8_t>& ssad, const std::vector<uint8_t>& static_data) {
-        std::vector<uint8_t> issuer_modulus{};
+                    const secure_vector& ssad, const secure_vector& static_data) {
+        secure_vector issuer_modulus{};
         if (!verify_issuer(db, cak, issuer_modulus)) {
             return false;
         }
@@ -4749,15 +4786,15 @@ public:
         return true;
     };
 
-    bool verify_ssad(tlv_db& db, const std::vector<uint8_t>& ssad, const std::vector<uint8_t>& issuer_modulus,
-                     const std::vector<uint8_t>& static_data) {
+    bool verify_ssad(tlv_db& db, const secure_vector& ssad, const secure_vector& issuer_modulus,
+                     const secure_vector& static_data) {
         pr_debug("verify ssad\n");
         if (ssad.size() != issuer_modulus.size()) {
             pr_debug("ssad not the same size as issuer modulus\n");
             return false;
         }
 
-        std::vector<uint8_t> recovered(issuer_modulus.size());
+        secure_vector recovered(issuer_modulus.size());
         bignum_exp_modulus(ssad, db[ISSUER_PUB_KEY_EXP_9F32], issuer_modulus, recovered);
         //pr_debug("recovered ssad\n", recovered, "\n");
         if (recovered[0] != 0x6A ||                    // header
@@ -4769,7 +4806,7 @@ public:
 
         int size = recovered.size() - 22;
         auto begin = recovered.cbegin() + 1;
-        std::vector<uint8_t> input{begin, begin + size};
+        secure_vector input{begin, begin + size};
         std::copy(static_data.begin(), static_data.end(), back_inserter(input));
 
         if (db.has_non_empty_tag(SDA_TAG_LIST_9F4A.id)) {
@@ -4782,18 +4819,18 @@ public:
             std::copy(aip.begin(), aip.end(), back_inserter(input));
         };
 
-        std::vector<uint8_t> hash(20);
+        secure_vector hash(20);
         compute_sha1(input.data(), input.size(), hash.data());
 
         auto hash_begin = recovered.cbegin() + (recovered.size() - 21);
-        std::vector<uint8_t> expect{hash_begin, hash_begin + 20};
+        secure_vector expect{hash_begin, hash_begin + 20};
         if (hash != expect) {
             pr_error("ssad hash not equal\n");
             pr_debug("expect ", expect, "\nactual ", hash, "\n");
             return false;
         }
 
-        tlv_obj tlv{DATA_AUTHENTICATION_CODE_9F45.id, std::vector<uint8_t>{recovered.cbegin() + 3, recovered.cbegin() + 5}};
+        tlv_obj tlv{DATA_AUTHENTICATION_CODE_9F45.id, secure_vector{recovered.cbegin() + 3, recovered.cbegin() + 5}};
         db.insert(std::move(tlv));
 
         return true;
@@ -4801,15 +4838,15 @@ public:
 
     bool verify_dda(tlv_db& db,
                     const cakey* cak,
-                    const std::vector<uint8_t>& sig,
-                    const std::vector<uint8_t>& static_data,
-                    const std::vector<uint8_t>& ddol) {
-        std::vector<uint8_t> issuer_modulus{};
+                    const secure_vector& sig,
+                    const secure_vector& static_data,
+                    const secure_vector& ddol) {
+        secure_vector issuer_modulus{};
         if (!verify_issuer(db, cak, issuer_modulus)) {
             return false;
         }
 
-        std::vector<uint8_t> icc_modulus{};
+        secure_vector icc_modulus{};
         if (!verify_icc(db, issuer_modulus, static_data, icc_modulus)) {
             return false;
         }
@@ -4821,7 +4858,7 @@ public:
         return true;
     };
 
-    static bool get_rid(const tlv_db& db, std::vector<uint8_t>& rid) {
+    static bool get_rid(const tlv_db& db, secure_vector& rid) {
         if (db.has_tag(ADF_NAME_4F)) {
             auto& p = db[ADF_NAME_4F];
             std::copy(p.begin(), p.begin() + 5, back_inserter(rid));
@@ -4831,13 +4868,13 @@ public:
         return false;
     };
 
-    bool retrieve_icc_pk(const tlv_db& db, std::vector<uint8_t>& icc_modulus, std::vector<uint8_t>& static_data) {
+    bool retrieve_icc_pk(const tlv_db& db, secure_vector& icc_modulus, secure_vector& static_data) {
         if (!db.has_tag(CA_PUBLIC_KEY_INDEX_8F)) {
             pr_debug("missing tag 8F\n");
             return false;
         };
 
-        std::vector<uint8_t> rid{};
+        secure_vector rid{};
         if (!get_rid(db, rid))
             return false;
 
@@ -4847,7 +4884,7 @@ public:
             return false;
         }
 
-        std::vector<uint8_t> issuer_modulus{};
+        secure_vector issuer_modulus{};
         if (!verify_issuer(db, cak, issuer_modulus)) {
             return false;
         }
@@ -4859,8 +4896,8 @@ public:
         return true;
     }
 
-    bool verify_cda(tlv_db& db, std::vector<uint8_t>& icc_modulus,
-                    const std::vector<uint8_t>& apdu, bool extract_extra = false) {
+    bool verify_cda(tlv_db& db, secure_vector& icc_modulus,
+                    const secure_vector& apdu, bool extract_extra = false) {
         pr_debug("verify cda\n");
         if (!db.has_tag(SDAD_9F4B)) {
             pr_debug("tag missing\n");
@@ -4874,7 +4911,7 @@ public:
             return false;
         }
 
-        std::vector<uint8_t> recovered(icc_modulus.size());
+        secure_vector recovered(icc_modulus.size());
         bignum_exp_modulus(sig, db[ICC_PUB_KEY_EXP_9F47], icc_modulus, recovered);
         //pr_debug("recovered signature\n", recovered, "\n");
         if (recovered[0] != 0x6A ||                    // header
@@ -4886,21 +4923,21 @@ public:
 
         int size = recovered.size() - 22;
         auto begin = recovered.cbegin() + 1;
-        std::vector<uint8_t> input{begin, begin + size};
+        secure_vector input{begin, begin + size};
         auto un = db[UNPREDICTABLE_NUMBER_9F37];
         std::copy(un.cbegin(), un.cend(), back_inserter(input));
-        std::vector<uint8_t> hash(20);
+        secure_vector hash(20);
         compute_sha1(input.data(), input.size(), hash.data());
 
         auto hash_begin = recovered.cbegin() + (recovered.size() - 21);
-        std::vector<uint8_t> expect{hash_begin, hash_begin + 20};
+        secure_vector expect{hash_begin, hash_begin + 20};
         if (hash != expect) {
             pr_error("sdad hash not equal\n");
             pr_debug("expect ", expect, "\nactual ", hash, "\n");
             return false;
         }
 
-        std::vector<uint8_t> dynamic_data{recovered.cbegin() + 4, recovered.cbegin() + 4 + recovered[3]};
+        secure_vector dynamic_data{recovered.cbegin() + 4, recovered.cbegin() + 4 + recovered[3]};
         //pr_debug("dynamic data : ", dynamic_data, "\n");
 
         if (static_cast<unsigned int>(dynamic_data[0] + 30) > dynamic_data.size()) {
@@ -4909,7 +4946,7 @@ public:
         }
 
         auto dn_size = dynamic_data[0];
-        std::vector<uint8_t> dn{dynamic_data.cbegin() + 1, dynamic_data.cbegin() + 1 + dn_size};
+        secure_vector dn{dynamic_data.cbegin() + 1, dynamic_data.cbegin() + 1 + dn_size};
         //pr_debug("dynamic number : ", dn, "\n");
         auto cid = dynamic_data[dn_size + 1];
         if (cid != db[CID_9F27][0]) {
@@ -4917,12 +4954,12 @@ public:
             return false;
         }
 
-        std::vector<uint8_t> tr_data_hash{dynamic_data.cbegin() + dn_size + 2 + 8, dynamic_data.cbegin() + dn_size + 2 + 8 + 20};
+        secure_vector tr_data_hash{dynamic_data.cbegin() + dn_size + 2 + 8, dynamic_data.cbegin() + dn_size + 2 + 8 + 20};
         if (!verify_transact_data(db, apdu, tr_data_hash)) {
             return false;
         }
 
-        std::vector<uint8_t> cryptogram{dynamic_data.cbegin() + dn_size + 2, dynamic_data.cbegin() + dn_size + 2 + 8};
+        secure_vector cryptogram{dynamic_data.cbegin() + dn_size + 2, dynamic_data.cbegin() + dn_size + 2 + 8};
         //pr_debug("cryptogram : ", cryptogram, "\n");
 
         db.insert(tlv_obj{ICC_DYNAMIC_NUMBER_9F4C.id, dn});
@@ -4930,7 +4967,7 @@ public:
 
         if (extract_extra) {
             // the extra dynamic data might be needed for RRP or IDS (contactless kernel 2)
-            std::vector<uint8_t> extra_dynamic_data{dynamic_data.cbegin() + dn_size + 2 + 8 + 20, dynamic_data.cend()};
+            secure_vector extra_dynamic_data{dynamic_data.cbegin() + dn_size + 2 + 8 + 20, dynamic_data.cend()};
             return cda_extract_data(db, extra_dynamic_data);
         }
 
@@ -4939,7 +4976,7 @@ public:
 
     // procedure defined in emv contactless kernel 2
     // S910 or S11
-    bool cda_extract_data(tlv_db& db, std::vector<uint8_t>& extra) {
+    bool cda_extract_data(tlv_db& db, secure_vector& extra) {
         if (db.get_bit(IDS_STATUS_DF8128, TAG_IDS_STATUS_DF8128::read)) {
             // S910.2.2
             auto& cap = db[KERNEL2::APPLICATION_CAPABILITIES_INFO_9F5D];
@@ -4951,21 +4988,21 @@ public:
                 if ((ver == 1 && extra.size() >= 30) ||
                     (ver == 2 && extra.size() >= 46)) {
                     auto begin = extra.cbegin();
-                    std::vector<uint8_t> summary2{begin, begin + summary_size};
+                    secure_vector summary2{begin, begin + summary_size};
                     begin += summary_size;
                     db.insert(tlv_obj{DS_SUMMARY_2_DF8101.id, std::move(summary2)});
-                    std::vector<uint8_t> summary3{begin, begin + summary_size};
+                    secure_vector summary3{begin, begin + summary_size};
                     begin += summary_size;
                     db.insert(tlv_obj{DS_SUMMARY_3_DF8102.id, std::move(summary3)});
-                    std::vector<uint8_t> term_entropy{begin, begin + 4};
+                    secure_vector term_entropy{begin, begin + 4};
                     begin += 4;
-                    std::vector<uint8_t> dev_entropy{begin, begin + 4};
+                    secure_vector dev_entropy{begin, begin + 4};
                     begin += 4;
-                    std::vector<uint8_t> min_time{begin, begin + 2};
+                    secure_vector min_time{begin, begin + 2};
                     begin += 2;
-                    std::vector<uint8_t> max_time{begin, begin + 2};
+                    secure_vector max_time{begin, begin + 2};
                     begin += 2;
-                    std::vector<uint8_t> estimated{begin, begin + 2};
+                    secure_vector estimated{begin, begin + 2};
                     if (term_entropy == db[TERMINAL_RELAY_RESISTENCE_ENTROPY_DF8301] &&
                         dev_entropy == db[DEVIDE_REPLAY_RESISTENCE_ENTROPY_DF8302] &&
                         min_time == db[MIN_TIME_PROCESSING_RELAY_RESISTENCE_APDU_DF8303] &&
@@ -4979,11 +5016,11 @@ public:
                 pr_debug("handle cda - ids\n");
                 auto begin = extra.cbegin();
                 if (begin + summary_size <= extra.cend()) {
-                    std::vector<uint8_t> summary2{begin, begin + summary_size};
+                    secure_vector summary2{begin, begin + summary_size};
                     begin += summary_size;
                     db.insert(tlv_obj{DS_SUMMARY_2_DF8101.id, std::move(summary2)});
                     if (begin + summary_size <= extra.cend()) {
-                        std::vector<uint8_t> summary3{begin, begin + summary_size};
+                        secure_vector summary3{begin, begin + summary_size};
                         begin += summary_size;
                         db.insert(tlv_obj{DS_SUMMARY_3_DF8102.id, std::move(summary3)});
                     }
@@ -4997,15 +5034,15 @@ public:
                 pr_debug("handle cda - rrp\n");
                 if (extra.size() >= 14) {
                     auto begin = extra.cbegin();
-                    std::vector<uint8_t> term_entropy{begin, begin + 4};
+                    secure_vector term_entropy{begin, begin + 4};
                     begin += 4;
-                    std::vector<uint8_t> dev_entropy{begin, begin + 4};
+                    secure_vector dev_entropy{begin, begin + 4};
                     begin += 4;
-                    std::vector<uint8_t> min_time{begin, begin + 2};
+                    secure_vector min_time{begin, begin + 2};
                     begin += 2;
-                    std::vector<uint8_t> max_time{begin, begin + 2};
+                    secure_vector max_time{begin, begin + 2};
                     begin += 2;
-                    std::vector<uint8_t> estimated{begin, begin + 2};
+                    secure_vector estimated{begin, begin + 2};
                     if (term_entropy == db[TERMINAL_RELAY_RESISTENCE_ENTROPY_DF8301] &&
                         dev_entropy == db[DEVIDE_REPLAY_RESISTENCE_ENTROPY_DF8302] &&
                         min_time == db[MIN_TIME_PROCESSING_RELAY_RESISTENCE_APDU_DF8303] &&
@@ -5024,10 +5061,10 @@ public:
         return false;
     };
 
-    bool verify_transact_data(const tlv_db& db, const std::vector<uint8_t>& apdu, const std::vector<uint8_t>& tr_data_hash) {
+    bool verify_transact_data(const tlv_db& db, const secure_vector& apdu, const secure_vector& tr_data_hash) {
         // verify the transaction data hash
         pr_debug("verify transaction data\n");
-        std::vector<uint8_t> input{};
+        secure_vector input{};
 
         auto& pdol_related_data = db[PDOL_RELATED_DATA_DF8111];
         std::copy(pdol_related_data.begin(), pdol_related_data.end(),
@@ -5038,7 +5075,7 @@ public:
 
         auto parser = [&](uint32_t tag, auto begin, auto end, bool constructed) mutable -> bool {
             if (!constructed && tag != SDAD_9F4B.id) {
-                std::vector<uint8_t> v{begin, end};
+                secure_vector v{begin, end};
                 auto tlv = make_tlv(tag, v);
                 std::copy(tlv.begin(), tlv.end(), back_inserter(input));
             }
@@ -5050,7 +5087,7 @@ public:
             return false;
         }
 
-        std::vector<uint8_t> hash(20);
+        secure_vector hash(20);
         compute_sha1(input.data(), input.size(), hash.data());
         if (hash != tr_data_hash) {
             pr_debug("pdol ", pdol_related_data, "\n");
@@ -5064,14 +5101,14 @@ public:
         return true;
     }
 
-    bool verify_sdad(tlv_db& db, const std::vector<uint8_t>& sig, std::vector<uint8_t>& icc_modulus, const std::vector<uint8_t>& ddol) {
+    bool verify_sdad(tlv_db& db, const secure_vector& sig, secure_vector& icc_modulus, const secure_vector& ddol) {
         pr_debug("verify sdad\n");
         if (icc_modulus.size() != sig.size()) {
             pr_error("sig size ", sig.size(), " does not match icc modulus size ", icc_modulus.size(), "\n");
             return false;
         }
 
-        std::vector<uint8_t> recovered(icc_modulus.size());
+        secure_vector recovered(icc_modulus.size());
         bignum_exp_modulus(sig, db[ICC_PUB_KEY_EXP_9F47], icc_modulus, recovered);
         //pr_debug("recovered signature\n", recovered, "\n");
         if (recovered[0] != 0x6A ||                    // header
@@ -5083,26 +5120,26 @@ public:
 
         int size = recovered.size() - 22;
         auto begin = recovered.cbegin() + 1;
-        std::vector<uint8_t> input{begin, begin + size};
+        secure_vector input{begin, begin + size};
         std::copy(ddol.cbegin(), ddol.cend(), back_inserter(input));
-        std::vector<uint8_t> hash(20);
+        secure_vector hash(20);
         compute_sha1(input.data(), input.size(), hash.data());
 
         auto hash_begin = recovered.cbegin() + (recovered.size() - 21);
-        std::vector<uint8_t> expect{hash_begin, hash_begin + 20};
+        secure_vector expect{hash_begin, hash_begin + 20};
         if (hash != expect) {
             pr_error("sdad hash not equal\n");
             pr_debug("expect ", expect, "\nactual ", hash, "\n");
             return false;
         }
 
-        tlv_obj tlv{ICC_DYNAMIC_NUMBER_9F4C.id, std::vector<uint8_t>{recovered.cbegin() + 4, recovered.cbegin() + 4 + recovered[3]}};
+        tlv_obj tlv{ICC_DYNAMIC_NUMBER_9F4C.id, secure_vector{recovered.cbegin() + 4, recovered.cbegin() + 4 + recovered[3]}};
         db.insert(std::move(tlv));
         return true;
     };
 
-    bool verify_icc(const tlv_db& db, std::vector<uint8_t>& issuer_modulus, const std::vector<uint8_t>& static_data,
-                    std::vector<uint8_t>& icc_modulus) {
+    bool verify_icc(const tlv_db& db, secure_vector& issuer_modulus, const secure_vector& static_data,
+                    secure_vector& icc_modulus) {
         pr_debug("verify icc\n");
         auto& cert = db[ICC_PUB_KEY_CERT_9F46];
         if (cert.size() != issuer_modulus.size()) {
@@ -5110,7 +5147,7 @@ public:
             return false;
         }
 
-        std::vector<uint8_t> recovered(issuer_modulus.size());
+        secure_vector recovered(issuer_modulus.size());
         bignum_exp_modulus(cert, db[ISSUER_PUB_KEY_EXP_9F32], issuer_modulus, recovered);
         //pr_debug("recovered icc cert\n", recovered, "\n");
         if (recovered[0] != 0x6A ||                    // header
@@ -5122,8 +5159,8 @@ public:
 
         int size = recovered.size() - 22;
         auto begin = recovered.cbegin() + 1;
-        std::vector<uint8_t> input{begin, begin + size};
-        std::vector<uint8_t> pubkey{recovered.cbegin() + 21, recovered.cbegin() + (recovered.size() - 21)};
+        secure_vector input{begin, begin + size};
+        secure_vector pubkey{recovered.cbegin() + 21, recovered.cbegin() + (recovered.size() - 21)};
         if (db.has_tag(ICC_PUB_KEY_REMAINER_9F48)) {
             auto& p = db[ICC_PUB_KEY_REMAINER_9F48];
             std::copy(p.begin(), p.end(), back_inserter(input));
@@ -5146,19 +5183,19 @@ public:
             std::copy(aip.begin(), aip.end(), back_inserter(input));
         };
 
-        std::vector<uint8_t> hash(20);
+        secure_vector hash(20);
         compute_sha1(input.data(), input.size(), hash.data());
 
         auto hash_begin = recovered.cbegin() + (recovered.size() - 21);
-        std::vector<uint8_t> expect{hash_begin, hash_begin + 20};
+        secure_vector expect{hash_begin, hash_begin + 20};
         if (hash != expect) {
             pr_error("icc hash not equal\n");
             pr_debug("expect ", expect, "\nactual ", hash, "\n");
             return false;
         }
 
-        auto pan1 = PAN_5A.to_string(std::vector<uint8_t>{recovered.cbegin() + 2, recovered.cbegin() + 12});
-        std::string pan2{};
+        auto pan1 = PAN_5A.to_string(secure_vector{recovered.cbegin() + 2, recovered.cbegin() + 12});
+        secure_string pan2{};
 
         if (db.has_tag(TRACK2_57)) {
             pan2 = TRACK2_57.get_pan(db[TRACK2_57]);
@@ -5172,7 +5209,7 @@ public:
         }
 
         auto& today = db[TRANSACTION_DATE_9A];
-        std::vector<uint8_t> date{recovered.cbegin() + 12, recovered.cbegin() + 14}; // MMYY
+        secure_vector date{recovered.cbegin() + 12, recovered.cbegin() + 14}; // MMYY
         if (date[1] < today[0] || (date[1] == today[0] && date[0] < today[1])) {
             pr_debug("icc certificate date ", date, " expired, today ", today, "\n");
             return false;
@@ -5189,7 +5226,7 @@ public:
         return true;
     };
 
-    bool verify_issuer(const tlv_db& db, const cakey* cak, std::vector<uint8_t>& issuer_modulus) {
+    bool verify_issuer(const tlv_db& db, const cakey* cak, secure_vector& issuer_modulus) {
         pr_debug("verify issuer\n");
         auto& cert = db[ISSUER_PUB_KEY_CERT_90];
         if (cert.size() != cak->modulus.size()) {
@@ -5197,7 +5234,7 @@ public:
             return false;
         }
 
-        std::vector<uint8_t> recovered(cak->modulus.size());
+        secure_vector recovered(cak->modulus.size());
         bignum_exp_modulus(cert, cak->exponent, cak->modulus, recovered);
         //pr_verbose("recovered issuer cert\n", recovered, "\n");
         if (recovered[0] != 0x6A ||                    // header
@@ -5209,9 +5246,9 @@ public:
 
         int size = recovered.size() - 22;
         auto begin = recovered.cbegin() + 1;
-        std::vector<uint8_t> input{begin, begin + size};
+        secure_vector input{begin, begin + size};
 
-        std::vector<uint8_t> pubkey{recovered.cbegin() + 15, recovered.cbegin() + (recovered.size() - 21)};
+        secure_vector pubkey{recovered.cbegin() + 15, recovered.cbegin() + (recovered.size() - 21)};
         if (db.has_tag(ISSUER_PUB_KEY_REMAINER_92)) {
             auto& p = db[ISSUER_PUB_KEY_REMAINER_92];
             std::copy(p.begin(), p.end(), back_inserter(input));
@@ -5226,18 +5263,18 @@ public:
             return false;
         }
 
-        std::vector<uint8_t> hash(20);
+        secure_vector hash(20);
         compute_sha1(input.data(), input.size(), hash.data());
 
         auto hash_begin = recovered.cbegin() + (recovered.size() - 21);
-        std::vector<uint8_t> actual{hash_begin, hash_begin + 20};
+        secure_vector actual{hash_begin, hash_begin + 20};
         if (hash != actual) {
             pr_error("hash not equal\n");
             return false;
         }
 
-        auto issuer_id = PAN_5A.to_string(std::vector<uint8_t>{recovered.cbegin() + 2, recovered.cbegin() + 6});
-        std::string pan{};
+        auto issuer_id = PAN_5A.to_string(secure_vector{recovered.cbegin() + 2, recovered.cbegin() + 6});
+        secure_string pan{};
         if (db.has_tag(TRACK2_57)) {
             pan = TRACK2_57.get_pan(db[TRACK2_57]);
         } else {
@@ -5250,13 +5287,13 @@ public:
         }
 
         auto& today = db[TRANSACTION_DATE_9A];
-        std::vector<uint8_t> date{recovered.cbegin() + 6, recovered.cbegin() + 8}; // MMYY
+        secure_vector date{recovered.cbegin() + 6, recovered.cbegin() + 8}; // MMYY
         if (date[1] < today[0] || (date[1] == today[0] && date[0] < today[1])) {
             pr_debug("issuer certificate date ", date, " expired, today ", today, "\n");
             return false;
         }
 
-        if (on_revocation_list(cak, std::vector<uint8_t>{recovered.cbegin() + 8,
+        if (on_revocation_list(cak, secure_vector{recovered.cbegin() + 8,
                                                          recovered.cbegin() + 11})) {
             pr_debug("certificate on revocation list\n");
             return false;
@@ -5271,7 +5308,7 @@ public:
         return true;
     };
 
-    bool on_revocation_list(const cakey* cak, const std::vector<uint8_t>& serial) {
+    bool on_revocation_list(const cakey* cak, const secure_vector& serial) {
         return false;
     };
 
@@ -5281,7 +5318,7 @@ private:
         state_wait_for_select_aid.last_choice = candidates.begin();
     };
 
-    void enter_express_mode(std::vector<uint8_t> const& apdu) {
+    void enter_express_mode(secure_vector const& apdu) {
         clear_candidates();
         uint8_t sw1 = apdu[apdu.size() - 2];
         uint8_t sw2 = apdu[apdu.size() - 1];
@@ -5289,7 +5326,7 @@ private:
             tlv_db fci{};
             auto parser = [&fci](uint32_t tag, auto begin, auto end, bool constructed) mutable -> bool {
                 if (!constructed) {
-                    std::vector<uint8_t> v{begin, end};
+                    secure_vector v{begin, end};
                     fci.emplace(tag, std::move(v));
                 };
                 return true;
@@ -5339,7 +5376,7 @@ private:
 
         // STEP 1 3.3.2.2
         std::string ppse = "2PAY.SYS.DDF01";
-        std::vector<uint8_t> data(ppse.size());
+        secure_vector data(ppse.size());
         for (unsigned i = 0; i != data.size(); i++)
             data[i] = ppse[i];
         send_apdu(apdu_builder::build(COMMANDS::SELECT).data(data).le(0).to_bytes());
@@ -5575,7 +5612,7 @@ private:
             }
         } else {
             // 3.3.3.6
-            std::vector<uint8_t> df_name;
+            secure_vector df_name;
             if (fci.has_tag(DF_NAME_84))
                 df_name = fci[DF_NAME_84];
 
@@ -5712,13 +5749,13 @@ private:
         state_wait_for_select_aid.last_choice = choice;
 
         //3.3.3.3
-        std::vector<uint8_t> aid;
+        secure_vector aid;
         const transaction_cfg* config = choice->combo->transact;
         if (choice->extended_selection.size() != 0 &&
             config->extended_selection_support &&
             config->extended_selection_support.value()) {
             aid = choice->adf_name;
-            const std::vector<uint8_t>& extended_selection = choice->extended_selection;
+            const secure_vector& extended_selection = choice->extended_selection;
             pr_debug("append extended select ", choice->extended_selection, " to ", aid, "\n");
             std::copy(extended_selection.begin(), extended_selection.end(), back_inserter(aid));
         } else {

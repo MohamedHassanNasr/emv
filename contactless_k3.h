@@ -40,17 +40,17 @@ namespace emv::contactless {
 class kernel3 : public kernel {
     class database : public tlv_db {
     public:
-        database() : tlv_db{}, decline_required_by_reader{false}, online_required_by_reader{false}, static_oda_data{std::vector<uint8_t>{}} {};
+        database() : tlv_db{}, decline_required_by_reader{false}, online_required_by_reader{false}, static_oda_data{secure_vector{}} {};
         bool decline_required_by_reader;
         bool online_required_by_reader;
-        std::vector<uint8_t> static_oda_data;
+        secure_vector static_oda_data;
     };
 
 private:
     class read_responder : public modulel2::responder {
     public:
         read_responder(kernel3* k3) : modulel2::responder(0, k3->emvl2), k3{k3} {};
-        virtual void handle_apdu(const std::vector<uint8_t>& apdu) override {
+        virtual void handle_apdu(const secure_vector& apdu) override {
             modulel2::responder::handle_apdu(apdu);
             uint8_t sw1 = apdu[apdu.size() - 2];
             uint8_t sw2 = apdu[apdu.size() - 1];
@@ -66,7 +66,7 @@ private:
                                 pr_error("oda data not having tag 0x70\n");
                                 return false;
                             } else if (sfi <= 10) {
-                                std::vector<uint8_t> data{begin, end};
+                                secure_vector data{begin, end};
                                 pr_debug("APPEND ", data, "\n");
                                 std::copy(begin, end, back_inserter(k3->kernel_db.static_oda_data));
                             }
@@ -81,7 +81,7 @@ private:
                     auto sfi = AFL_94.get_sfi(next);
                     if (sfi > 10) {
                         pr_debug("sfi ", static_cast<int>(sfi), " record ", static_cast<int>(next_record), "\n");
-                        std::vector<uint8_t> data{apdu.begin(), apdu.end() - 2};
+                        secure_vector data{apdu.begin(), apdu.end() - 2};
                         pr_debug("APPEND ", data, "\n");
                         std::copy(apdu.begin(), apdu.end() - 2, back_inserter(k3->kernel_db.static_oda_data));
                     }
@@ -115,7 +115,7 @@ private:
         virtual void timeout() override{};
 
         uint8_t next_record;
-        vector<uint8_t> afl;
+        secure_vector afl;
         const uint8_t* next;
         kernel3* k3;
     };
@@ -123,7 +123,7 @@ private:
     class gpo_responder : public modulel2::responder {
     public:
         gpo_responder(kernel3* k3) : modulel2::responder(0, k3->emvl2), k3{k3} {};
-        virtual void handle_apdu(const std::vector<uint8_t>& apdu) override {
+        virtual void handle_apdu(const secure_vector& apdu) override {
             modulel2::responder::handle_apdu(apdu);
             uint8_t sw1 = apdu[apdu.size() - 2];
             uint8_t sw2 = apdu[apdu.size() - 1];
@@ -205,8 +205,8 @@ public:
             }
             // PDOL availability should have been checked by entry point
             auto& dol = fci[PDOL_9F38];
-            std::vector<uint8_t> tags{};
-            std::vector<uint8_t> missing{};
+            secure_vector tags{};
+            secure_vector missing{};
             build_dol(PDOL_9F38.id, dol, kernel_db, tags, missing);
             tags = make_tlv(0x83, tags);
             emvl2->set_state(&state_wait_for_gpo_response);
@@ -215,8 +215,8 @@ public:
         return true;
     }
 
-    bool operator()(uint32_t tag, std::vector<uint8_t>::const_iterator begin,
-                    std::vector<uint8_t>::const_iterator end, bool combined) {
+    bool operator()(uint32_t tag, secure_vector::const_iterator begin,
+                    secure_vector::const_iterator end, bool combined) {
         //logger.debug("TAG : ", to_hex(tag), "\n");
         if (!combined) {
             // 5.4.2.2
@@ -225,7 +225,7 @@ public:
                 return false;
             };
 
-            std::vector<uint8_t> v{begin, end};
+            secure_vector v{begin, end};
 
             // A.2 Kernel 3
             if (tag == TRACK2_57.id && kernel_db.has_tag(PAN_5A)) {
@@ -459,7 +459,7 @@ public:
 
         // 5.4.3.1
         if (!kernel_db.has_tag(CID_9F27)) {
-            std::vector<uint8_t> v(CID_9F27.maxlen);
+            secure_vector v(CID_9F27.maxlen);
             CID_9F27.set_type(v, kernel_db(ISSUER_APPLICATION_DATA_9F10));
             kernel_db.emplace(CID_9F27.id, std::move(v));
         };
@@ -735,7 +735,7 @@ public:
 
             auto& sig = kernel_db[SDAD_9F4B];
 
-            std::vector<uint8_t> ddol(kernel_db[UNPREDICTABLE_NUMBER_9F37]);
+            secure_vector ddol(kernel_db[UNPREDICTABLE_NUMBER_9F37]);
 
             auto& amount = kernel_db[AMOUNT_AUTHORISED_9F02];
             std::copy(amount.begin(), amount.end(), back_inserter(ddol));
@@ -861,20 +861,20 @@ public:
         return true;
     };
 
-    std::vector<uint8_t> get_rid() {
-        std::vector<uint8_t> rid{};
+    secure_vector get_rid() {
+        secure_vector rid{};
         auto& p = kernel_db[ADF_NAME_4F];
         std::copy(p.begin(), p.begin() + 5, back_inserter(rid));
 
         return rid;
     };
 
-    void add_entry(std::vector<uint8_t>& records, uint32_t tag, std::vector<uint8_t> v) {
+    void add_entry(secure_vector& records, uint32_t tag, secure_vector v) {
         auto tlv = make_tlv(tag, v);
         std::copy(tlv.begin(), tlv.end(), back_inserter(records));
     };
 
-    void add_entry(std::vector<uint8_t>& records, const tag_info& tag) {
+    void add_entry(secure_vector& records, const tag_info& tag) {
         if (kernel_db.has_tag(tag)) {
             auto& v = kernel_db[tag];
             add_entry(records, tag.id, v);
@@ -883,8 +883,8 @@ public:
         };
     };
 
-    void prepare_emv_outcome_data(std::vector<uint8_t>& records) {
-        std::vector<uint8_t> data_records;
+    void prepare_emv_outcome_data(secure_vector& records) {
+        secure_vector data_records;
         add_entry(data_records, AMOUNT_AUTHORISED_9F02);
         if (kernel_db(TRANSACTION_TYPE_9C) == TRANSACTION_TYPE::PURCHASE_WITH_CASHBACK) {
             add_entry(data_records, AMOUNT_OTHER_9F03);
@@ -904,7 +904,7 @@ public:
         add_entry(data_records, TRANSACTION_TYPE_9C);
         add_entry(data_records, UNPREDICTABLE_NUMBER_9F37);
 
-        std::vector<uint8_t> tvr(TVR_95.maxlen);
+        secure_vector tvr(TVR_95.maxlen);
         add_entry(data_records, TVR_95.id, tvr);
 
         // 4.1.1.1

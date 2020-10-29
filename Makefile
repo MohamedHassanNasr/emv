@@ -5,7 +5,7 @@ OBJDIR := $(CURDIR)/build
 SRCS = native/main.cpp native/mbedtls/bignum.c native/mbedtls/sha1.c
 OBJS := $(patsubst %.cpp, $(OBJDIR)/%.o, $(patsubst %.c, $(OBJDIR)/%.o, $(SRCS)))
 
-CFLAGS := $(CFLAGS) -DHAVE_LOG -I. -I./json/include -I./native/mbedtls -I./mock -I./native -g -Werror -Wall
+CFLAGS := $(CFLAGS) -DHAVE_LOG -DUSE_SECURE_ALLOCATOR -I. -I./json/include -I./native/mbedtls -I./mock -I./native -g -Werror -Wall
 CPPFLAGS := $(CFLAGS) -std=c++17
 DEPFLAGS = -MT $(OBJDIR)/$*.o -MD -MP -MF $(OBJDIR)/$*.d
 

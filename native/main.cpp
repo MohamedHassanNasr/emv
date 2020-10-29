@@ -54,10 +54,10 @@ void emv::compute_sha1(const uint8_t* data, size_t length, uint8_t* hash) {
 }
 
 #include "bignum.h"
-void emv::bignum_exp_modulus(const std::vector<uint8_t>& base,
-                             const std::vector<uint8_t>& exponent,
-                             const std::vector<uint8_t>& modulus,
-                             std::vector<uint8_t>& result) {
+void emv::bignum_exp_modulus(const secure_vector& base,
+                             const secure_vector& exponent,
+                             const secure_vector& modulus,
+                             secure_vector& result) {
     mbedtls_mpi A, E, N, X;
     mbedtls_mpi_init(&A);
     mbedtls_mpi_init(&E);

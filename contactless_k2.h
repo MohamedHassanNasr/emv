@@ -45,7 +45,7 @@ class kernel2 : public kernel {
     public:
         database() : tlv_db{} {};
 
-        tlv_obj get_and_remove_from_list(std::vector<uint8_t>& list_data) {
+        tlv_obj get_and_remove_from_list(secure_vector& list_data) {
             uint32_t tag = 0;
             uint8_t tagSize = 0;
             uint32_t length;
@@ -65,16 +65,16 @@ class kernel2 : public kernel {
                     throw std::bad_exception();
                 }
 
-                std::vector<uint8_t> v{begin, begin + length};
+                secure_vector v{begin, begin + length};
                 tlv_obj obj{tag, std::move(v)};
-                list_data = std::vector<uint8_t>{begin + length, end};
+                list_data = secure_vector{begin + length, end};
                 return obj;
             }
 
             return tlv_obj{};
         };
 
-        bool update_with_det_data(std::vector<uint8_t> const& det_data) {
+        bool update_with_det_data(secure_vector const& det_data) {
             pr_debug("update with DET:\n");
             auto parser = [&](uint32_t tag, auto begin, auto end, bool constructed) mutable -> bool {
                 if (tag == TAGS_TO_READ_DF8112.id) {
@@ -91,7 +91,7 @@ class kernel2 : public kernel {
                     // Store LV in the TLV Database for tag T
                     // ENDIF
                     // FIXME check update conditions
-                    std::vector<uint8_t> v(begin, end);
+                    secure_vector v(begin, end);
                     tlv_print(tag, v);
                     tlv_obj tlv(tag, std::move(v));
                     insert(std::move(tlv));
@@ -101,7 +101,7 @@ class kernel2 : public kernel {
             return tlv_visit(det_data.begin(), det_data.end(), parser, false);
         };
 
-        bool parse_store_card_response(std::vector<uint8_t> const& apdu) {
+        bool parse_store_card_response(secure_vector const& apdu) {
             auto parser = [&](uint32_t tag, auto begin, auto end, bool constructed) mutable -> bool {
                 return save_tlv_from_card(tag, begin, end, constructed);
             };
@@ -109,15 +109,15 @@ class kernel2 : public kernel {
             return tlv_visit(apdu.begin(), apdu.end() - 2, parser);
         };
 
-        bool save_tlv_from_card(uint32_t tag, std::vector<uint8_t>::const_iterator begin,
-                                std::vector<uint8_t>::const_iterator end, bool constructed) {
+        bool save_tlv_from_card(uint32_t tag, secure_vector::const_iterator begin,
+                                secure_vector::const_iterator end, bool constructed) {
             if (!constructed) {
                 if (has_tag(tag)) {
                     logger.error("duplicated tlv found from card ", to_hex(tag));
                     return false;
                 };
 
-                std::vector<uint8_t> v{begin, end};
+                secure_vector v{begin, end};
                 if (tag == TRACK2_57.id && has_tag(PAN_5A)) {
                     auto pan_5A = (*this)(PAN_5A);
                     auto pan_57 = TRACK2_57.get_pan(v);
@@ -152,10 +152,10 @@ class kernel2 : public kernel {
         std::set<uint32_t> tags_to_read_yet;
         tlv_obj_list tags_to_write_yet_after_gen_ac;
         tlv_obj_list tags_to_write_yet_before_gen_ac;
-        std::vector<uint8_t> afl;
-        std::vector<uint8_t> contactless_transaction_limit;
-        std::vector<uint8_t> static_oda_data;
-        std::vector<uint8_t> saved_gac_rsp;
+        secure_vector afl;
+        secure_vector contactless_transaction_limit;
+        secure_vector static_oda_data;
+        secure_vector saved_gac_rsp;
         const uint8_t* active_afl;
         uint8_t next_record;
 
@@ -203,7 +203,7 @@ class kernel2 : public kernel {
 
         // TODO need to check oda data size etc. and set TVR accordingly
         // refer to S4.35
-        bool parse_record(const std::vector<uint8_t>& apdu, bool signed_record, uint8_t sfi) {
+        bool parse_record(const secure_vector& apdu, bool signed_record, uint8_t sfi) {
             // S4.24
             if (sfi <= 10) {
                 if (apdu.size() <= 4 ||
@@ -217,7 +217,7 @@ class kernel2 : public kernel {
                 if (constructed &&
                     signed_record && oda_status.cda &&
                     tag == 0x70 && sfi <= 10) {
-                    std::vector<uint8_t> data{begin, end};
+                    secure_vector data{begin, end};
                     pr_debug("APPEND ", data, "\n");
                     std::copy(begin, end, back_inserter(static_oda_data));
                 }
@@ -234,7 +234,7 @@ class kernel2 : public kernel {
                 if (sfi > 10) {
                     if (apdu[0] == 0x70) {
                         pr_debug("sfi ", static_cast<int>(sfi), " record ", static_cast<int>(next_record), "\n");
-                        std::vector<uint8_t> data{apdu.begin(), apdu.end() - 2};
+                        secure_vector data{apdu.begin(), apdu.end() - 2};
                         pr_debug("APPEND ", data, "\n");
 
                         std::copy(apdu.begin(), apdu.end() - 2, back_inserter(static_oda_data));
@@ -257,7 +257,7 @@ class kernel2 : public kernel {
         };
     };
 
-    const map<uint32_t, std::vector<uint8_t>> DEFAULT_CONFIG_DATA{
+    const map<uint32_t, secure_vector> DEFAULT_CONFIG_DATA{
         // additional terminal capabilities
         {0x9F40, {0x00, 0x00, 0x00, 0x00, 0x00}},
         // application versio number (reader)
@@ -391,16 +391,16 @@ public:
     class k2responder : public modulel2::responder {
     public:
         k2responder(kernel2* k2) : modulel2::responder{0, k2->emvl2}, k2{k2} {};
-        virtual void handle_apdu(const std::vector<uint8_t>& apdu) override {
+        virtual void handle_apdu(const secure_vector& apdu) override {
             modulel2::responder::handle_apdu(apdu);
             k2->dispatch_signal(SIGNAL::RA, &apdu);
         };
 
-        virtual void handle_det(const std::vector<uint8_t>& data) override {
+        virtual void handle_det(const secure_vector& data) override {
             k2->dispatch_signal(SIGNAL::DET, &data);
         };
 
-        virtual void handle_l1rsp(const std::vector<uint8_t>& error) override {
+        virtual void handle_l1rsp(const secure_vector& error) override {
             k2->dispatch_signal(SIGNAL::L1RSP, &error);
         };
 
@@ -463,14 +463,14 @@ public:
     }
 
 private:
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)>* state;
+    std::function<KSTATUS(SIGNAL, const secure_vector*)>* state;
     k2responder k2resp;
 
-    void enter_state(std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)>* next) {
+    void enter_state(std::function<KSTATUS(SIGNAL, const secure_vector*)>* next) {
         state = next;
     };
 
-    void dispatch_signal(SIGNAL sig, const std::vector<uint8_t>* param = nullptr) {
+    void dispatch_signal(SIGNAL sig, const secure_vector* param = nullptr) {
         if (state != nullptr) {
             pr_debug("Kernel Signal -> ", to_string(sig), "\n");
             auto ret = (*state)(sig, param);
@@ -483,7 +483,7 @@ private:
         }
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> ks = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> ks = [&](SIGNAL sig, const secure_vector* param) {
         if (sig == SIGNAL::KERNEL_START) {
             pr_debug("initialize default config data\n");
             for (auto& p : DEFAULT_CONFIG_DATA) {
@@ -495,22 +495,22 @@ private:
             }
 
             // 6.2.3
-            kernel_db.emplace(MOBILE_SUPPORT_INDICATOR_9F7E.id, std::vector<uint8_t>{0x01});
+            kernel_db.emplace(MOBILE_SUPPORT_INDICATOR_9F7E.id, secure_vector{0x01});
 
             // outcome params
-            std::vector<uint8_t> params = TAG_OUTCOME_PARAMETER_SET_DF8129::get_default();
+            secure_vector params = TAG_OUTCOME_PARAMETER_SET_DF8129::get_default();
             v_set_bit(params, TAG_OUTCOME_PARAMETER_SET_DF8129::discretionary_data_present);
             tlv_obj obj{OUTCOME_PARAMETER_SET_DF8129.id, std::move(params)};
             kernel_db.insert(std::move(obj));
 
             // ui data
-            std::vector<uint8_t> ui = TAG_USER_INTERFACE_REQUEST_DATA_DF8116::get_default();
+            secure_vector ui = TAG_USER_INTERFACE_REQUEST_DATA_DF8116::get_default();
             auto& hold_time = kernel_db[MESSAGE_HOLD_TIME_DF812D];
             TAG_USER_INTERFACE_REQUEST_DATA_DF8116::set_hold_time(ui, hold_time);
             kernel_db.emplace(USER_INTERFACE_REQUEST_DATA_DF8116.id, std::move(ui));
 
             // error indication
-            std::vector<uint8_t> error = TAG_ERROR_INDICATION_DF8115::get_default();
+            secure_vector error = TAG_ERROR_INDICATION_DF8115::get_default();
             kernel_db.emplace(ERROR_INDICATION_DF8115.id, std::move(error));
 
             enter_state(&s1_idle);
@@ -521,7 +521,7 @@ private:
 
     void remove_records(){};
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s1_idle = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s1_idle = [&](SIGNAL sig, const secure_vector* param) {
         switch (sig) {
         case SIGNAL::ACT: // S1_1
             break;
@@ -547,7 +547,7 @@ private:
         if (param != nullptr) {
             auto parser = [&](uint32_t tag, auto begin, auto end, bool combined) mutable -> bool {
                 if (!combined) {
-                    std::vector<uint8_t> v{begin, end};
+                    secure_vector v{begin, end};
                     tlv_obj obj{tag, std::move(v)};
                     if (tag_has_permission(tag, PERM_ACT)) {
                         kernel_db.update(obj);
@@ -619,7 +619,7 @@ private:
         };
 
         // s1_11
-        std::vector<uint8_t> pdol_list{};
+        secure_vector pdol_list{};
         bool pdol_data_missing = false;
 
         if (kernel_db.has_tag(PDOL_9F38))
@@ -670,7 +670,7 @@ private:
                 auto tlv = kernel_db.to_tlv(DS_ID_9F5E);
                 std::copy(tlv.begin(), tlv.end(), back_inserter(data_to_send));
             } else {
-                auto tlv = make_tlv(DS_ID_9F5E.id, std::vector<uint8_t>(1));
+                auto tlv = make_tlv(DS_ID_9F5E.id, secure_vector(1));
                 std::copy(tlv.begin(), tlv.end(), back_inserter(data_to_send));
             }
 
@@ -678,7 +678,7 @@ private:
                 auto tlv = kernel_db.to_tlv(KERNEL2::APPLICATION_CAPABILITIES_INFO_9F5D);
                 std::copy(tlv.begin(), tlv.end(), back_inserter(data_to_send));
             } else {
-                auto tlv = make_tlv(KERNEL2::APPLICATION_CAPABILITIES_INFO_9F5D.id, std::vector<uint8_t>(1));
+                auto tlv = make_tlv(KERNEL2::APPLICATION_CAPABILITIES_INFO_9F5D.id, secure_vector(1));
                 std::copy(tlv.begin(), tlv.end(), back_inserter(data_to_send));
             };
 
@@ -708,7 +708,7 @@ private:
         return KSTATUS::DEFAULT;
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s3_wait_for_gpo_resp = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s3_wait_for_gpo_resp = [&](SIGNAL sig, const secure_vector* param) {
         switch (sig) {
         case SIGNAL::RA: {
             auto& apdu = *param;
@@ -852,16 +852,16 @@ private:
     // s3.30
     KSTATUS handle_emv_mode() {
         pr_debug("handling EMV mode\n");
-        std::vector<uint8_t> default_one{0x08, 0x01, 0x01, 0x00};
+        secure_vector default_one{0x08, 0x01, 0x01, 0x00};
         auto& afl = kernel_db[AFL_94];
         auto& aip = kernel_db[AIP_82];
         auto& kcfg = kernel_db[KERNEL_CONFIGURATION_DF811B];
 
         if (afl.size() >= 4 &&
-            (std::vector<uint8_t>(afl.begin(), afl.begin() + 4) == default_one) &&
+            (secure_vector(afl.begin(), afl.begin() + 4) == default_one) &&
             !v_get_bit(kcfg, TAG_KERNEL_CONFIGURATION_DF811B::magstripe_mode_contactless_not_supported)) {
             //S3.32
-            kernel_db.afl = std::vector<uint8_t>(afl.cbegin() + 4, afl.cend());
+            kernel_db.afl = secure_vector(afl.cbegin() + 4, afl.cend());
         } else {
             //S3.31
             kernel_db.afl = afl;
@@ -991,7 +991,7 @@ private:
                 std::copy(tlv.begin(), tlv.end(), back_inserter(data_to_send));
                 to_remove.push_back(tag);
             } else if (send_empty && find_tag_info(tag) != nullptr) {
-                auto tlv = make_tlv(tag, std::vector<uint8_t>{});
+                auto tlv = make_tlv(tag, secure_vector{});
                 pr_debug("data to send : ", tlv, "\n");
                 std::copy(tlv.begin(), tlv.end(), back_inserter(data_to_send));
                 to_remove.push_back(tag);
@@ -1003,7 +1003,8 @@ private:
         }
     };
 
-    static inline int get_num_of_bit_one(const vector<uint8_t>& v) {
+    static inline int get_num_of_bit_one(const secure_vector& v)
+    {
         int ret = 0;
         auto ptr = v.data();
         auto size = v.size();
@@ -1021,11 +1022,11 @@ private:
         return ret;
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s5_wait_for_get_data = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s5_wait_for_get_data = [&](SIGNAL sig, const secure_vector* param) {
         return KSTATUS::DEFAULT;
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s7_wait_for_ms_read_record = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s7_wait_for_ms_read_record = [&](SIGNAL sig, const secure_vector* param) {
         switch (sig) {
         case SIGNAL::RA: { // S7.9
             auto& apdu = *param;
@@ -1235,10 +1236,10 @@ private:
 
                 // S78.15
                 // reuse UNPREDICTABLE_NUMBER_9F37 for UNPREDICTABLE_NUMBER_NUMERIC_9F6A
-                std::vector<uint8_t> randoms = kernel_db[UNPREDICTABLE_NUMBER_9F37];
+                secure_vector randoms = kernel_db[UNPREDICTABLE_NUMBER_9F37];
 
                 // convent to bcd
-                std::vector<uint8_t> bcd = to_bcd(randoms);
+                secure_vector bcd = to_bcd(randoms);
                 bcd.resize(randoms.size());
                 std::copy(bcd.begin(), bcd.end(), randoms.begin());
                 randoms[0] &= 0x0F;
@@ -1259,14 +1260,14 @@ private:
                         auto& outcome = kernel_db[OUTCOME_PARAMETER_SET_DF8129];
                         TAG_OUTCOME_PARAMETER_SET_DF8129::set_cvm(outcome, OUTCOME_CVM::CONF_CODE_VERIFIED);
                         kernel_db.set_bit(MOBILE_SUPPORT_INDICATOR_9F7E, TAG_MOBILE_SUPPORT_INDICATOR_9F7E::od_cvm_required);
-                        std::vector<uint8_t> udol{};
+                        secure_vector udol{};
                         if (kernel_db.has_tag(KERNEL2::UDOL_9F69)) {
                             udol = kernel_db[KERNEL2::UDOL_9F69];
                         } else {
                             udol = kernel_db[DEFAULT_UDOL_DF811A];
                         }
-                        std::vector<uint8_t> udol_related_data{};
-                        std::vector<uint8_t> missing_tags{};
+                        secure_vector udol_related_data{};
+                        secure_vector missing_tags{};
                         build_dol(KERNEL2::UDOL_9F69.id, udol, kernel_db, udol_related_data, missing_tags);
                         emvl2->send_apdu(apdu_builder::build(COMMANDS::COMPUTE_CRYPTOGRAPHIC_CHECKSUM).data(udol_related_data).le(0).to_bytes());
                         enter_state(&s14_wait_for_ccc_response_2);
@@ -1274,8 +1275,8 @@ private:
                 } else {
                     // S78.17
                     auto udol = kernel_db[KERNEL2::UDOL_9F69];
-                    std::vector<uint8_t> udol_related_data{};
-                    std::vector<uint8_t> missing_tags{};
+                    secure_vector udol_related_data{};
+                    secure_vector missing_tags{};
                     build_dol(KERNEL2::UDOL_9F69.id, udol, kernel_db, udol_related_data, missing_tags);
                     emvl2->send_apdu(apdu_builder::build(COMMANDS::COMPUTE_CRYPTOGRAPHIC_CHECKSUM).data(udol_related_data).le(0).to_bytes());
                     enter_state(&s13_wait_for_ccc_response_1);
@@ -1314,7 +1315,7 @@ private:
         return KSTATUS::DEFAULT;
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s8_wait_for_magstripe_first_write_flag = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s8_wait_for_magstripe_first_write_flag = [&](SIGNAL sig, const secure_vector* param) {
         pr_debug("enter s8_wait_for_magstripe_first_write_flag\n");
         return KSTATUS::DEFAULT;
     };
@@ -1506,7 +1507,7 @@ private:
         kernel_db.update(tlv_obj(TRACK2_DATA_9F6B.id, track2_data));
     }
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s13_wait_for_ccc_response_1 = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s13_wait_for_ccc_response_1 = [&](SIGNAL sig, const secure_vector* param) {
         pr_debug("enter s13_wait_for_ccc_response_1\n");
         switch (sig) {
         case SIGNAL::RA: {
@@ -1722,12 +1723,12 @@ private:
         return KSTATUS::DEFAULT;
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s14_wait_for_ccc_response_2 = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s14_wait_for_ccc_response_2 = [&](SIGNAL sig, const secure_vector* param) {
         pr_debug("enter s14_wait_for_ccc_response_2\n");
         return KSTATUS::DEFAULT;
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s4_wait_for_emv_read_record = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s4_wait_for_emv_read_record = [&](SIGNAL sig, const secure_vector* param) {
         switch (sig) {
         case SIGNAL::RA: {
             auto& apdu = *param;
@@ -1914,11 +1915,11 @@ private:
 
         // S456.18
         if (kernel_db.get_bit(IDS_STATUS_DF8128, TAG_IDS_STATUS_DF8128::read)) {
-            std::string pan_seq{};
+            secure_string pan_seq{};
             if (kernel_db.has_tag(PAN_SEQ_5F34)) {
                 pan_seq = vector2hex(kernel_db[PAN_SEQ_5F34]);
             } else {
-                pan_seq = std::string("00");
+                pan_seq = secure_string("00");
             }
             auto pan = PAN_5A.to_string(kernel_db[PAN_5A]);
             pan = pan + pan_seq;
@@ -2038,8 +2039,8 @@ private:
             if (p != torn.cend()) {
                 pr_debug("find torn transaction\n");
                 auto drdol = kernel_db[DRDOL_9F51];
-                std::vector<uint8_t> drdol_related_data;
-                std::vector<uint8_t> missing_tags;
+                secure_vector drdol_related_data;
+                secure_vector missing_tags;
                 build_dol(DRDOL_9F51.id, drdol, *p, drdol_related_data, missing_tags);
 
                 emvl2->send_apdu(apdu_builder::build(COMMANDS::RECOVER_AC).le(0).data(drdol_related_data).to_bytes());
@@ -2060,8 +2061,8 @@ private:
     KSTATUS generate_ac_no_ids() {
         auto ref = kernel_db[REFERENCE_CONTROL_PARAMETER_DF8114];
         auto cdol1 = kernel_db[CDOL1_8C];
-        std::vector<uint8_t> cdol1_related_data{};
-        std::vector<uint8_t> missing_tags{};
+        secure_vector cdol1_related_data{};
+        secure_vector missing_tags{};
         build_dol(CDOL1_8C.id, cdol1, kernel_db, cdol1_related_data, missing_tags);
 
         kernel_db.insert(tlv_obj{CDOL1_RELATED_DATA_DF8107.id, cdol1_related_data});
@@ -2092,13 +2093,13 @@ private:
         v_set_bit(ref, TAG_REFERENCE_CONTROL_PARAMETER_DF8114::cda_signature_requested);
 
         auto cdol1 = kernel_db[CDOL1_8C];
-        std::vector<uint8_t> cdol1_related_data;
-        std::vector<uint8_t> missing_tags;
+        secure_vector cdol1_related_data;
+        secure_vector missing_tags;
         build_dol(CDOL1_8C.id, cdol1, kernel_db, cdol1_related_data, missing_tags);
         kernel_db.insert(tlv_obj{CDOL1_RELATED_DATA_DF8107.id, cdol1_related_data});
 
         auto dsdol = kernel_db[DSDOL_9F5B];
-        std::vector<uint8_t> dsdol_related_data;
+        secure_vector dsdol_related_data;
         build_dol(DSDOL_9F5B.id, dsdol, kernel_db, dsdol_related_data, missing_tags);
 
         std::copy(dsdol_related_data.begin(), dsdol_related_data.end(),
@@ -2124,7 +2125,7 @@ private:
         auto& tvr = kernel_db[TVR_95];
         auto& aip = kernel_db[AIP_82];
         auto& kcfg = kernel_db[KERNEL_CONFIGURATION_DF811B];
-        tlv_obj ref{REFERENCE_CONTROL_PARAMETER_DF8114.id, std::vector<uint8_t>(1)};
+        tlv_obj ref{REFERENCE_CONTROL_PARAMETER_DF8114.id, secure_vector(1)};
 
         // GAC.1
         if (!kernel_db.get_bit(IDS_STATUS_DF8128, TAG_IDS_STATUS_DF8128::read)) {
@@ -2236,19 +2237,19 @@ private:
     }
 
     // TODO
-    std::vector<uint8_t> OWHF2() {
+    secure_vector OWHF2() {
         pr_debug("OWHF2 NOT IMPLEMENTED YET\n");
-        return std::vector<uint8_t>{};
+        return secure_vector{};
     }
 
     // TODO
-    std::vector<uint8_t> OWHF2AES() {
+    secure_vector OWHF2AES() {
         pr_debug("OWHF2AES NOT IMPLEMENTED YET\n");
-        return std::vector<uint8_t>{};
+        return secure_vector{};
     };
 
-    inline int and_vect(const std::vector<uint8_t>& v1,
-                        const std::vector<uint8_t>& v2) {
+    inline int and_vect(const secure_vector& v1,
+                        const secure_vector& v2) {
         for (unsigned i = 0; i != v1.size(); i++) {
             if (v1[i] & v2[i]) {
                 return 1;
@@ -2407,7 +2408,7 @@ private:
         while (cvr + 1 < cvm_list.end()) {
             auto cvm_code = cvr[0] & 0x3F;
             auto cvm_condition = cvr[1];
-            pr_debug("handling CVR ", std::vector<uint8_t>{cvr, cvr + 2}, "\n");
+            pr_debug("handling CVR ", secure_vector{cvr, cvr + 2}, "\n");
 
             if (cvm_condition <= 9 &&                                     // CVM10
                 cvm_conditoin_data_present(cvm_condition) &&              // CVM11
@@ -2512,11 +2513,11 @@ private:
         return true;
     };
 
-    inline uint32_t to_uint32(std::vector<uint8_t>::const_iterator v) {
+    inline uint32_t to_uint32(secure_vector::const_iterator v) {
         return (v[0] << 24) | (v[1] << 16) | (v[2] << 8) | v[3];
     }
 
-    bool cvm_condition_satisfied(std::vector<uint8_t>::const_iterator x, std::vector<uint8_t>::const_iterator y, uint8_t code, uint8_t condition) {
+    bool cvm_condition_satisfied(secure_vector::const_iterator x, secure_vector::const_iterator y, uint8_t code, uint8_t condition) {
         switch (static_cast<CVM_CONDITION>(condition)) {
         case CVM_CONDITION::ALWAYS:
             break;
@@ -2836,7 +2837,7 @@ private:
         return KSTATUS::EXIT_KERNEL;
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s11_waiting_for_gen_ac_response_2 = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s11_waiting_for_gen_ac_response_2 = [&](SIGNAL sig, const secure_vector* param) {
         pr_debug("enter s11_waiting_for_gen_ac_response_2\n");
         switch (sig) {
         case SIGNAL::RA: { // S11.2
@@ -2941,8 +2942,8 @@ private:
 
             // S11.13, 15
             auto drdol = kernel_db[DRDOL_9F51];
-            std::vector<uint8_t> drdol_related_data;
-            std::vector<uint8_t> missing_tags;
+            secure_vector drdol_related_data;
+            secure_vector missing_tags;
             build_dol(DRDOL_9F51.id, drdol, kernel_db, drdol_related_data, missing_tags);
             kernel_db.emplace(DRDOL_RELATED_DATA_DF8113.id, drdol_related_data);
             torn.create<KERNEL2_NS>(kernel_db);
@@ -2970,7 +2971,7 @@ private:
         return KSTATUS::DEFAULT;
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s9_waiting_for_generate_ac_response_1 = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s9_waiting_for_generate_ac_response_1 = [&](SIGNAL sig, const secure_vector* param) {
         switch (sig) {
         case SIGNAL::RA: {
             auto& apdu = *param;
@@ -3112,7 +3113,7 @@ private:
 
     KSTATUS s11_cda() {
         // S11.40
-        std::vector<uint8_t> icc_modulus{};
+        secure_vector icc_modulus{};
         if (emvl2->retrieve_icc_pk(kernel_db, icc_modulus, kernel_db.static_oda_data) &&
             emvl2->verify_cda(kernel_db, icc_modulus, kernel_db.saved_gac_rsp, true)) {
             if (kernel_db.get_bit(IDS_STATUS_DF8128, TAG_IDS_STATUS_DF8128::read)) {
@@ -3132,7 +3133,7 @@ private:
     };
 
     KSTATUS s910_cda() {
-        std::vector<uint8_t> icc_modulus{};
+        secure_vector icc_modulus{};
         if (emvl2->retrieve_icc_pk(kernel_db, icc_modulus, kernel_db.static_oda_data) &&
             emvl2->verify_cda(kernel_db, icc_modulus, kernel_db.saved_gac_rsp, true)) {
             if (kernel_db.get_bit(IDS_STATUS_DF8128, TAG_IDS_STATUS_DF8128::read)) {
@@ -3448,11 +3449,11 @@ private:
                 if (kernel_db.has_non_empty_tag(TRACK2_57)) {
                     auto& track2 = kernel_db[TRACK2_57];
                     auto pan = TAG_TRACK2_57::get_pan(track2);
-                    std::string dd{};
+                    secure_string dd{};
                     if (pan.size() <= 16)
-                        dd = std::string("0000000000000");
+                        dd = secure_string("0000000000000");
                     else
-                        dd = std::string("0000000000");
+                        dd = secure_string("0000000000");
 
                     if (kernel_db.has_non_empty_tag(CA_PUBLIC_KEY_INDEX_8F)) {
                         uint8_t index = kernel_db[CA_PUBLIC_KEY_INDEX_8F][0];
@@ -3520,7 +3521,7 @@ private:
         return (*CONTINUE_AFTER_BR2)();
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s10_waiting_for_recover_ac_response = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s10_waiting_for_recover_ac_response = [&](SIGNAL sig, const secure_vector* param) {
         pr_debug(std::string("enter s10_waiting_for_recover_ac_response\n"));
         switch (sig) {
         case SIGNAL::RA: { // S10.2
@@ -3617,7 +3618,7 @@ private:
         return KSTATUS::DEFAULT;
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s12_waiting_for_put_data_response_before_generate_ac = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s12_waiting_for_put_data_response_before_generate_ac = [&](SIGNAL sig, const secure_vector* param) {
         pr_debug(std::string("enter s12_waiting_for_put_data_response_before_generate_ac\n"));
         switch (sig) {
         case SIGNAL::RA: { // S12.2
@@ -3651,8 +3652,8 @@ private:
                     // S12.17, 18, 19
                     pr_debug("find torn transaction\n");
                     auto drdol = kernel_db[DRDOL_9F51];
-                    std::vector<uint8_t> drdol_related_data;
-                    std::vector<uint8_t> missing_tags;
+                    secure_vector drdol_related_data;
+                    secure_vector missing_tags;
                     build_dol(DRDOL_9F51.id, drdol, *p, drdol_related_data, missing_tags);
 
                     emvl2->send_apdu(apdu_builder::build(COMMANDS::RECOVER_AC).le(0).data(drdol_related_data).to_bytes());
@@ -3709,7 +3710,7 @@ private:
         return KSTATUS::DEFAULT;
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s15_waiting_for_put_data_response_after_gen_ac = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s15_waiting_for_put_data_response_after_gen_ac = [&](SIGNAL sig, const secure_vector* param) {
         pr_debug(std::string("enter s15_waiting_for_put_data_response_after_gen_ac\n"));
         switch (sig) {
         case SIGNAL::RA: { // S15.2
@@ -3784,7 +3785,7 @@ private:
         return KSTATUS::EXIT_KERNEL;
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s16_waiting_for_pre_gen_ac_balance = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s16_waiting_for_pre_gen_ac_balance = [&](SIGNAL sig, const secure_vector* param) {
         pr_debug(std::string("enter s16_waiting_for_pre_gen_ac_balance\n"));
 
         switch (sig) {
@@ -3798,7 +3799,7 @@ private:
                     if (apdu[0] == 0x9F && apdu[1] == 0x50 &&
                         apdu[2] == 0x06) {
                         auto& v = kernel_db[BALANCE_READ_AFTER_GEN_AC_DF8105];
-                        v = std::vector<uint8_t>(apdu.begin() + 3, apdu.begin() + 9);
+                        v = secure_vector(apdu.begin() + 3, apdu.begin() + 9);
                     }
                 }
             };
@@ -3842,7 +3843,7 @@ private:
         return CONTINUE_AFTER_BR1();
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s17_waiting_for_post_gen_ac_balance = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s17_waiting_for_post_gen_ac_balance = [&](SIGNAL sig, const secure_vector* param) {
         switch (sig) {
         case SIGNAL::RA: { // S17.2
             auto& apdu = *param;
@@ -3854,7 +3855,7 @@ private:
                     if (apdu[0] == 0x9F && apdu[1] == 0x50 &&
                         apdu[2] == 0x06) {
                         auto& v = kernel_db[BALANCE_READ_AFTER_GEN_AC_DF8105];
-                        v = std::vector<uint8_t>(apdu.begin() + 3, apdu.begin() + 9);
+                        v = secure_vector(apdu.begin() + 3, apdu.begin() + 9);
                     }
                 }
             };
@@ -3871,7 +3872,7 @@ private:
         return (*CONTINUE_AFTER_BR2)();
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s6_wait_for_emv_mode_first_write_flag = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s6_wait_for_emv_mode_first_write_flag = [&](SIGNAL sig, const secure_vector* param) {
         pr_debug(std::string("enter s6_wait_for_emv_mode_first_write_flag\n"));
         switch (sig) {
         case SIGNAL::TIMEOUT: { // S6.1
@@ -3923,7 +3924,7 @@ private:
         return KSTATUS::DEFAULT;
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s4_terminate_on_next_ra = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s4_terminate_on_next_ra = [&](SIGNAL sig, const secure_vector* param) {
         pr_debug(std::string("enter s4_terminate_on_next_ra\n"));
         switch (sig) {
         case SIGNAL::RA:      // S4'.1
@@ -3970,8 +3971,8 @@ private:
         return KSTATUS::DEFAULT;
     };
 
-    std::vector<uint8_t> get_rid() {
-        std::vector<uint8_t> rid{};
+    secure_vector get_rid() {
+        secure_vector rid{};
         auto& p = kernel_db[ADF_NAME_4F];
         std::copy(p.begin(), p.begin() + 5, back_inserter(rid));
 
@@ -4023,7 +4024,7 @@ private:
         if (afl.size() >= 4 &&
             memcmp(afl.data(), default_one, 4)) {
             //S3.72
-            kernel_db.afl = std::vector<uint8_t>(afl.cbegin(), afl.cbegin() + 4);
+            kernel_db.afl = secure_vector(afl.cbegin(), afl.cbegin() + 4);
         } else {
             //S3.71
             kernel_db.afl = afl;
@@ -4055,7 +4056,7 @@ private:
         return KSTATUS::DEFAULT;
     };
 
-    std::function<KSTATUS(SIGNAL, const std::vector<uint8_t>*)> s2_wait_for_pdol_data = [&](SIGNAL sig, const std::vector<uint8_t>* param) {
+    std::function<KSTATUS(SIGNAL, const secure_vector*)> s2_wait_for_pdol_data = [&](SIGNAL sig, const secure_vector* param) {
         switch (sig) {
         case SIGNAL::TIMEOUT: {
             // s2.3
@@ -4097,7 +4098,7 @@ private:
     };
 
     void send_dek() {
-        std::vector<uint8_t> data{};
+        secure_vector data{};
         if (kernel_db.has_non_empty_tag(DATA_NEEDED_DF8106.id)) {
             auto v = kernel_db.to_tlv(DATA_NEEDED_DF8106);
             std::copy(v.begin(), v.end(), back_inserter(data));
