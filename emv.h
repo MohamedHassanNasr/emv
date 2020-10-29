@@ -540,7 +540,7 @@ struct tag_eq {
     };
 };
 
-using tag_sets = std::unordered_set<const tag_info*, tag_hash, tag_eq>;
+using tag_sets = std::unordered_set<const tag_info*, tag_hash, tag_eq, default_secure_allocator<const tag_info*>>;
 
 struct tag_ans : tag_info {
     constexpr tag_ans(int id, const char* desc, uint8_t minlen, uint8_t maxlen, TAG_PERM perm = PERM_K) : tag_info(id, TAG_TYPE::ANS, desc, minlen, maxlen, perm){};
@@ -3409,7 +3409,7 @@ private:
     secure_vector _list;
 };
 
-using tlv_maps = std::map<uint32_t, secure_vector>;
+using tlv_maps = std::map<uint32_t, secure_vector, std::less<uint32_t>, default_secure_allocator<std::pair<const uint32_t, secure_vector>>>;
 
 class tlv_db {
 public:
@@ -4314,11 +4314,15 @@ struct cakey {
 };
 
 struct reader_cfg {
+    using exception_list_t = std::unordered_set<secure_string,
+                                                std::hash<secure_string>,
+                                                std::equal_to<secure_string>,
+                                                default_secure_allocator<secure_string>>;
     std::string name;
     tlv_db terminal_cfg;
     std::vector<kernel_cfg> kernel_cfgs;
     std::vector<cakey> pks;
-    std::unordered_set<secure_string> exceptions;
+    exception_list_t exceptions;
     void print() const {
         pr_debug("<--  config ", name, "  -->\n");
         pr_debug("<terminal>\n");

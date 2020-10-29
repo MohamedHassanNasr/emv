@@ -12,8 +12,8 @@
 // It is not necessary for a tamper-proof environment
 // so define or undef USE_SECURE_ALLOCATOR to suit your own need
 //
-// Perhaps in the future we can migrate whole code into a custom allocator, which
-// can be essential for some embedded system to build
+// Migrating the code into a custom allocator also allows flexiblity in
+// design depending on the target memory model
 //
 #ifdef USE_SECURE_ALLOCATOR
 
@@ -37,7 +37,9 @@ public:
 
     void deallocate(pointer p, size_type n)
     {
-        std::memset(p, 0, n * sizeof(T));
+        if constexpr (std::is_trivial_v<T>) {
+            std::memset(p, 0, n * sizeof(T));
+        }
         return std::allocator<T>::deallocate(p, n);
     }
 
@@ -70,6 +72,8 @@ struct hash<secure_string> {
 
 using secure_vector = std::vector<uint8_t>;
 using secure_string = std::string;
+template <typename T>
+using default_secure_allocator = std::allocator<T>;
 
 #endif
 
