@@ -3228,10 +3228,18 @@ public:
     static constexpr int MAX_MESSAGE_LENGTH = 512;
     message(const secure_vector msg) : data(msg){};
     message(secure_vector&& msg) : data(std::move(msg)){};
-    message(message const& msg) = default;
-    message(message&& msg) = default;
-    message& operator=(message const& msg) = default;
-    message& operator=(message&& msg) = default;
+    message(message const& msg) : data(msg.data){};
+    message(message&& msg) : data(std::move(msg.data)){};
+    message& operator=(message const& msg)
+    {
+        data = msg.data;
+        return *this;
+    }
+    message& operator=(message&& msg)
+    {
+        data = std::move(msg.data);
+        return *this;
+    }
 
     message(MESSAGE_ID id, EMV_MODULE src, EMV_MODULE dest, const secure_vector body = secure_vector()) {
         data.resize(3 + body.size());
