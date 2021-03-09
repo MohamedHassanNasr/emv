@@ -1,13 +1,13 @@
 # Introduction
 
-THIS PROJECT IS WORK IN PROGRESS.
+NOTE: The project provides a working implementation of contactless emv kernel 2 & 3. You can use it to test chip card, or simply for tutorial purpose. However this is definitely not production code and many mandatory features are missing.  At current stage, it is necessary to purchase professional emv tool to implement and verify remaining features, which author is reluctant to do without external funding. 
 
 Claim: This project use open source json implementation from git@github.com:nlohmann/json.git (which is a head-file based implementation convienient to use)
 (make sure you did 'git submodule update --init --recursive' after cloning emv repo)
 
 Contactless EMV is implemented using modern C++, you need c++17 compiler. So far we can do online/offline transaction for Visa/Mastercard
 
-Some optional features are not fully implemented, like RRP, Magstripe, IDS, nor is the code certified.
+Some features are not fully implemented, like RRP, Magstripe, IDS, nor is the code certified.
 
 the contactless EMV is designed for easy integration with a solution:
 
